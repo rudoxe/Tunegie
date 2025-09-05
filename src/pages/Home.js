@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import ApiTest from '../components/ApiTest';
 
 export default function Home() {
   return (
@@ -11,12 +13,12 @@ export default function Home() {
         <p className="text-lg md:text-xl text-green-200/80 max-w-2xl mb-8">
           Welcome to <span className="font-semibold text-green-400">Tunegie</span> — a song guessing game. Listen to short snippets, guess the track, and see how you rank on the leaderboard.
         </p>
-        <a
-          href="/game"
+        <Link
+          to="/game"
           className="bg-green-600 text-black px-8 py-4 rounded-2xl font-bold text-xl shadow-lg hover:bg-green-500 transition"
         >
           Start Playing
-        </a>
+        </Link>
       </section>
 
       {/* Features Section */}
@@ -47,18 +49,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* API Test Section (Development Only) */}
+      <section className="py-20 px-6">
+        <div className="max-w-2xl mx-auto">
+          <ApiTest />
+        </div>
+      </section>
+
       {/* About Section Preview */}
       <section id="about" className="bg-gray-900/30 py-20 px-6 text-center">
         <h3 className="text-3xl font-semibold mb-6">About Tunegie</h3>
         <p className="max-w-3xl mx-auto text-green-200/80 mb-6">
           Tunegie is a lightweight music guessing game inspired by Spotify's design. It's built with React + Tailwind CSS and made for music lovers everywhere.
         </p>
-        <a
-          href="/about"
+        <Link
+          to="/about"
           className="bg-green-600/20 text-green-400 px-6 py-3 rounded-xl font-semibold hover:bg-green-600/30 transition border border-green-600/30"
         >
           Learn More About Us
-        </a>
+        </Link>
       </section>
     </div>
   );

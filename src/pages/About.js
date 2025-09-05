@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function About() {
   return (
@@ -82,12 +83,12 @@ export default function About() {
           <p className="text-green-200/80 mb-6">
             Join thousands of music lovers who are already enjoying the ultimate song guessing experience.
           </p>
-          <a
-            href="/game"
+          <Link
+            to="/game"
             className="bg-green-600 text-black px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:bg-green-500 transition inline-block"
           >
             Start Playing Now
-          </a>
+          </Link>
         </div>
       </section>
     </div>
