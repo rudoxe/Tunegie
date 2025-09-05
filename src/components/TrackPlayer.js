@@ -181,7 +181,16 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
         }
       };
       
-      playBeat(style);
+      // Resume audio context if suspended (critical for Chrome/Safari)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('✅ Audio context resumed before playback');
+          playBeat(style);
+        });
+      } else {
+        playBeat(style);
+      }
+      
       console.log(`🎵 Playing ${style} style audio for "${track?.title}" by ${track?.artists?.[0]?.name} (${Math.floor(snippetStart/60)}:${(snippetStart%60).toString().padStart(2,'0')} - ${Math.floor((snippetStart+snippetDuration)/60)}:${((snippetStart+snippetDuration)%60).toString().padStart(2,'0')})`);
       
       // Vary the audio based on where in the song we are
@@ -201,23 +210,46 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
   };
   
   const createTrapBeat = (audioContext, startTime) => {
-    // 808 kick pattern
-    for (let i = 0; i < 5; i++) {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+    console.log('🎵 Creating trap beat...');
+    
+    // 808 kick pattern - multiple frequencies for more aggressive sound
+    const kickFreqs = [60, 80, 100, 70, 90];
+    
+    kickFreqs.forEach((freq, i) => {
+      // Primary kick
+      const osc1 = audioContext.createOscillator();
+      const gain1 = audioContext.createGain();
       
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      osc1.connect(gain1);
+      gain1.connect(audioContext.destination);
       
-      oscillator.frequency.setValueAtTime(60, startTime + i);
-      oscillator.type = 'sine';
+      osc1.frequency.setValueAtTime(freq, startTime + i * 1);
+      osc1.type = 'sine';
       
-      gainNode.gain.setValueAtTime(0.8, startTime + i); // Increased volume
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + i + 0.3);
+      gain1.gain.setValueAtTime(0.9, startTime + i * 1); // Very high volume
+      gain1.gain.exponentialRampToValueAtTime(0.001, startTime + i * 1 + 0.4);
       
-      oscillator.start(startTime + i);
-      oscillator.stop(startTime + i + 0.3);
-    }
+      osc1.start(startTime + i * 1);
+      osc1.stop(startTime + i * 1 + 0.4);
+      
+      // Add high-frequency click for punch
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      
+      osc2.frequency.setValueAtTime(2000, startTime + i * 1);
+      osc2.type = 'square';
+      
+      gain2.gain.setValueAtTime(0.3, startTime + i * 1);
+      gain2.gain.exponentialRampToValueAtTime(0.001, startTime + i * 1 + 0.05);
+      
+      osc2.start(startTime + i * 1);
+      osc2.stop(startTime + i * 1 + 0.05);
+    });
+    
+    console.log('✅ Trap beat oscillators created and started');
   };
   
   const createHipHopBeat = (audioContext, startTime) => {
@@ -317,6 +349,51 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
     echo.start(startTime + 0.3);
     echo.stop(startTime + 3);
   };
+  
+  // Test function to play a simple beep - for debugging audio issues
+  const playTestTone = async () => {
+    try {
+      // Initialize audio context
+      initAudioContext();
+      
+      if (!audioContextRef.current) {
+        console.error('❌ Cannot create test tone - no audio context');
+        return;
+      }
+      
+      const audioContext = audioContextRef.current;
+      
+      // Resume if suspended
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      
+      console.log('🗏 Playing test tone at 440Hz for 1 second...');
+      
+      // Create a simple 440Hz tone
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 1);
+      
+      oscillator.onended = () => {
+        console.log('✅ Test tone completed');
+      };
+      
+    } catch (error) {
+      console.error('❌ Test tone failed:', error);
+    }
+  };
 
   const stopSnippet = () => {
     setIsPlaying(false);
@@ -404,6 +481,15 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
               🔀
             </button>
           )}
+          
+          {/* Test Audio Button - for debugging */}
+          <button
+            onClick={playTestTone}
+            className="w-16 h-16 rounded-full flex items-center justify-center text-xs font-bold transition bg-yellow-600 hover:bg-yellow-500 text-black"
+            title="Test Audio (Simple Beep)"
+          >
+            🔊
+          </button>
         </div>
 
         {/* Progress Bar */}
