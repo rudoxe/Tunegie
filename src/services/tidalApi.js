@@ -216,116 +216,169 @@ class TidalApiService {
     return result.tracks || { items: [], totalNumberOfItems: 0 };
   }
 
-  // Get random tracks for the guessing game
+  // Get random tracks directly from Apple Music for the guessing game
   async getRandomTracksForGame(count = 10) {
+    console.log('🎵 Getting random tracks from Apple Music...');
+    
     try {
-      // Try to get real tracks first
-      const searchResult = await this.searchTracks('pop', count * 2);
-      if (searchResult.items && searchResult.items.length > 0) {
-        const shuffled = searchResult.items.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, count);
+      const appleMusicTracks = await this.getAppleMusicTracks(count);
+      if (appleMusicTracks && appleMusicTracks.length > 0) {
+        console.log(`✅ Found ${appleMusicTracks.length} Apple Music tracks`);
+        return appleMusicTracks;
       }
     } catch (error) {
-      console.warn('Live API failed, using mock data for development:', error);
+      console.error('❌ Apple Music track fetch failed:', error);
     }
 
-    // Mock data fallback for development mode
-    console.log('🎧 Using mock track data for game (development mode)');
-    const mockTracks = [
-      {
-        id: 'mock-1',
-        title: 'Shape of You',
-        artists: [{ name: 'Ed Sheeran' }],
-        album: { title: '÷ (Divide)', releaseDate: '2017-03-03' },
-        duration: 233
-      },
-      {
-        id: 'mock-2', 
-        title: 'Blinding Lights',
-        artists: [{ name: 'The Weeknd' }],
-        album: { title: 'After Hours', releaseDate: '2020-03-20' },
-        duration: 200
-      },
-      {
-        id: 'mock-3',
-        title: 'Watermelon Sugar', 
-        artists: [{ name: 'Harry Styles' }],
-        album: { title: 'Fine Line', releaseDate: '2019-12-13' },
-        duration: 174
-      },
-      {
-        id: 'mock-4',
-        title: 'Bad Guy',
-        artists: [{ name: 'Billie Eilish' }],
-        album: { title: 'When We All Fall Asleep, Where Do We Go?', releaseDate: '2019-03-29' },
-        duration: 194
-      },
-      {
-        id: 'mock-5',
-        title: 'Someone You Loved',
-        artists: [{ name: 'Lewis Capaldi' }],
-        album: { title: 'Divinely Uninspired to a Hellish Extent', releaseDate: '2019-05-17' },
-        duration: 182
-      },
-      {
-        id: 'mock-6',
-        title: 'Circles',
-        artists: [{ name: 'Post Malone' }],
-        album: { title: 'Hollywood\'s Bleeding', releaseDate: '2019-09-06' },
-        duration: 215
-      },
-      {
-        id: 'mock-7',
-        title: 'Don\'t Start Now',
-        artists: [{ name: 'Dua Lipa' }],
-        album: { title: 'Future Nostalgia', releaseDate: '2020-03-27' },
-        duration: 183
-      },
-      {
-        id: 'mock-8',
-        title: 'Levitating',
-        artists: [{ name: 'Dua Lipa' }],
-        album: { title: 'Future Nostalgia', releaseDate: '2020-03-27' },
-        duration: 203
-      },
-      {
-        id: 'mock-9',
-        title: 'As It Was',
-        artists: [{ name: 'Harry Styles' }],
-        album: { title: 'Harry\'s House', releaseDate: '2022-05-20' },
-        duration: 167
-      },
-      {
-        id: 'mock-10',
-        title: 'Anti-Hero',
-        artists: [{ name: 'Taylor Swift' }],
-        album: { title: 'Midnights', releaseDate: '2022-10-21' },
-        duration: 200
-      }
+    // Fallback to popular tracks list
+    console.log('🎧 Using popular tracks fallback');
+    const popularTracks = [
+      { artist: 'Ed Sheeran', title: 'Shape of You' },
+      { artist: 'The Weeknd', title: 'Blinding Lights' },
+      { artist: 'Harry Styles', title: 'Watermelon Sugar' },
+      { artist: 'Billie Eilish', title: 'Bad Guy' },
+      { artist: 'Post Malone', title: 'Circles' },
+      { artist: 'Dua Lipa', title: 'Levitating' },
+      { artist: 'Taylor Swift', title: 'Anti-Hero' },
+      { artist: 'Drake', title: 'Gods Plan' },
+      { artist: 'Ariana Grande', title: 'Thank U Next' },
+      { artist: 'Olivia Rodrigo', title: 'Good 4 U' }
     ];
-
-    // Shuffle and return requested count
-    const shuffled = mockTracks.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
+    
+    const tracks = [];
+    const shuffledPopular = popularTracks.sort(() => 0.5 - Math.random());
+    
+    for (let i = 0; i < Math.min(count, shuffledPopular.length); i++) {
+      const popular = shuffledPopular[i];
+      const appleTrack = await this.searchAppleMusic(popular.artist, popular.title);
+      
+      if (appleTrack) {
+            tracks.push({
+              id: `apple-${appleTrack.trackId}`,
+              title: appleTrack.trackName,
+              artists: [{ name: appleTrack.artistName }],
+              album: { 
+                title: appleTrack.albumName || 'Unknown Album',
+                releaseDate: appleTrack.releaseDate
+              },
+              duration: 30, // Preview duration
+              previewUrl: appleTrack.previewUrl,
+              actualTrack: `${appleTrack.trackName} by ${appleTrack.artistName}`,
+              source: 'Apple Music',
+              canPreview: true,
+              artworkUrl: appleTrack.artworkUrl
+            });
+      }
+    }
+    
+    return tracks;
   }
 
-  // Get tracks by specific artist
-  async getTracksByArtist(artistName, count = 10) {
+  // Get tracks directly from Apple Music popular charts
+  async getAppleMusicTracks(count = 10) {
     try {
-      // Try to search for the artist first
-      const searchResult = await this.searchTracks(`artist:${artistName}`, count * 2);
-      if (searchResult.items && searchResult.items.length > 0) {
-        // Filter tracks that are actually by this artist
-        const artistTracks = searchResult.items.filter(track => 
-          track.artists && track.artists.some(artist => 
-            artist.name.toLowerCase().includes(artistName.toLowerCase())
+      console.log('🎵 Fetching Apple Music popular tracks...');
+      
+      // Search for popular/trending terms to get current hits
+      const popularSearches = ['top hits 2024', 'popular songs', 'billboard hot 100', 'trending music'];
+      const allTracks = [];
+      
+      for (const searchTerm of popularSearches) {
+        const encodedQuery = encodeURIComponent(searchTerm);
+        const url = `https://itunes.apple.com/search?term=${encodedQuery}&media=music&entity=song&limit=50&country=US`;
+        
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.results && data.results.length > 0) {
+            // Filter tracks with previews and add to collection
+            const tracksWithPreviews = data.results
+              .filter(track => track.previewUrl)
+              .map(track => ({
+                id: `apple-${track.trackId}`,
+                title: track.trackName,
+                artists: [{ name: track.artistName }],
+                album: { 
+                  title: track.collectionName || 'Unknown Album',
+                  releaseDate: track.releaseDate
+                },
+                duration: 30,
+                previewUrl: track.previewUrl,
+                actualTrack: `${track.trackName} by ${track.artistName}`,
+                source: 'Apple Music',
+                canPreview: true,
+                artworkUrl: track.artworkUrl100
+              }));
+            
+            allTracks.push(...tracksWithPreviews);
+          }
+        }
+        
+        // Don't overwhelm the API
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Remove duplicates and shuffle
+      const uniqueTracks = allTracks.filter((track, index, self) => 
+        index === self.findIndex(t => t.id === track.id)
+      );
+      
+      const shuffled = uniqueTracks.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+      
+    } catch (error) {
+      console.error('Apple Music tracks fetch failed:', error);
+      return null;
+    }
+  }
+
+  // Get tracks by specific artist from Apple Music
+  async getTracksByArtist(artistName, count = 10) {
+    console.log(`🎵 Getting Apple Music tracks for artist: ${artistName}`);
+    
+    try {
+      const encodedArtist = encodeURIComponent(artistName);
+      const url = `https://itunes.apple.com/search?term=${encodedArtist}&media=music&entity=song&limit=50&country=US`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Apple Music API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        // Filter for exact artist matches with previews
+        const artistTracks = data.results
+          .filter(track => 
+            track.previewUrl &&
+            this.normalizeString(track.artistName) === this.normalizeString(artistName)
           )
-        );
-        const shuffled = artistTracks.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, count);
+          .map(track => ({
+            id: `apple-${track.trackId}`,
+            title: track.trackName,
+            artists: [{ name: track.artistName }],
+            album: { 
+              title: track.collectionName || 'Unknown Album',
+              releaseDate: track.releaseDate
+            },
+            duration: 30,
+            previewUrl: track.previewUrl,
+            actualTrack: `${track.trackName} by ${track.artistName}`,
+            source: 'Apple Music',
+            canPreview: true,
+            artworkUrl: track.artworkUrl100
+          }));
+        
+        if (artistTracks.length > 0) {
+          const shuffled = artistTracks.sort(() => 0.5 - Math.random());
+          console.log(`✅ Found ${artistTracks.length} Apple Music tracks for ${artistName}`);
+          return shuffled.slice(0, count);
+        }
       }
     } catch (error) {
-      console.warn(`Live API failed for artist ${artistName}, using mock data:`, error);
+      console.error(`Apple Music search failed for ${artistName}:`, error);
     }
 
     // Mock data fallback for specific artists
@@ -470,20 +523,200 @@ class TidalApiService {
     }
   }
 
-  // Get track preview URL (TIDAL doesn't provide direct preview URLs in the public API)
-  // This would typically require the TIDAL SDK player for web
-  getTrackPreviewInfo(track) {
+  // Get track preview info - simplified since Apple Music tracks already have previews
+  async getTrackPreviewInfo(track) {
+    const artist = track.artists?.[0]?.name || 'Unknown Artist';
+    const title = track.title;
+    
+    // If track already has preview info (from Apple Music), return it directly
+    if (track.previewUrl && track.canPreview) {
+      console.log(`✅ Track already has preview: "${title}" by ${artist}`);
+      return {
+        id: track.id,
+        title: title,
+        artist: artist,
+        album: track.album?.title || 'Unknown Album',
+        duration: track.duration,
+        previewUrl: track.previewUrl,
+        actualTrack: track.actualTrack || `${title} by ${artist}`,
+        matchType: 'Perfect', // Since it's the exact track we want
+        source: track.source || 'Apple Music',
+        albumArt: track.artworkUrl,
+        canPreview: true,
+      };
+    }
+    
+    // Fallback: search Apple Music if track doesn't have preview
+    console.log(`🎵 Searching Apple Music for: "${title}" by ${artist}`);
+    
+    try {
+      const appleResult = await this.searchAppleMusic(artist, title);
+      if (appleResult) {
+        return {
+          id: track.id,
+          title: title,
+          artist: artist,
+          album: track.album?.title || 'Unknown Album',
+          duration: track.duration,
+          previewUrl: appleResult.previewUrl,
+          actualTrack: `${appleResult.trackName} by ${appleResult.artistName}`,
+          matchType: appleResult.matchType,
+          source: 'Apple Music',
+          albumArt: appleResult.artworkUrl,
+          appleTrackId: appleResult.trackId,
+          canPreview: true,
+        };
+      }
+    } catch (error) {
+      console.error('❌ Apple Music search failed:', error);
+    }
+    
     return {
       id: track.id,
-      title: track.title,
-      artist: track.artists?.[0]?.name || 'Unknown Artist',
+      title: title,
+      artist: artist,
       album: track.album?.title || 'Unknown Album',
       duration: track.duration,
-      // Note: Actual playback requires TIDAL SDK Player
-      // For the game, we'll show track info and let users guess
-      canPreview: false, // Will be true when we implement the player
+      canPreview: false,
+      actualTrack: `${title} by ${artist} (Not Available)`,
+      source: 'None',
     };
   }
+  
+  // Apple Music/iTunes Search API - comprehensive search with multiple strategies
+  async searchAppleMusic(artist, title) {
+    const searchStrategies = [
+      // Strategy 1: Exact match - artist and title
+      { query: `${artist} ${title}`, type: 'exact' },
+      // Strategy 2: Title first, then artist
+      { query: `${title} ${artist}`, type: 'reversed' },
+      // Strategy 3: Artist only (get popular tracks)
+      { query: artist, type: 'artist' },
+      // Strategy 4: Title only
+      { query: title, type: 'title' },
+      // Strategy 5: Fuzzy search - first words only
+      { query: `${artist.split(' ')[0]} ${title.split(' ')[0]}`, type: 'fuzzy' }
+    ];
+
+    for (let i = 0; i < searchStrategies.length; i++) {
+      const strategy = searchStrategies[i];
+      
+      try {
+        console.log(`🎵 Apple Music strategy ${i + 1} (${strategy.type}): "${strategy.query}"`);
+        
+        const encodedQuery = encodeURIComponent(strategy.query);
+        const url = `https://itunes.apple.com/search?term=${encodedQuery}&media=music&entity=song&limit=20&country=US`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'TuneGie/1.0'
+          }
+        });
+        
+        if (!response.ok) {
+          console.warn(`Apple Music API error: ${response.status}`);
+          continue;
+        }
+        
+        const data = await response.json();
+        console.log(`🔍 Apple Music results for strategy ${i + 1}:`, data.resultCount);
+        
+        if (data.results && data.results.length > 0) {
+          // Find best match based on strategy type
+          let bestMatch = this.findBestAppleMatch(data.results, artist, title, strategy.type);
+          
+          if (bestMatch && bestMatch.previewUrl) {
+            const matchTypes = {
+              'exact': 'Perfect',
+              'reversed': 'Good', 
+              'artist': 'Artist',
+              'title': 'Title',
+              'fuzzy': 'Fuzzy'
+            };
+            
+            console.log(`✅ Apple Music ${matchTypes[strategy.type]} match:`, bestMatch.trackName, 'by', bestMatch.artistName);
+            
+            return {
+              previewUrl: bestMatch.previewUrl,
+              trackName: bestMatch.trackName,
+              artistName: bestMatch.artistName,
+              artworkUrl: bestMatch.artworkUrl100,
+              trackId: bestMatch.trackId,
+              matchType: matchTypes[strategy.type],
+              albumName: bestMatch.collectionName,
+              releaseDate: bestMatch.releaseDate
+            };
+          }
+        }
+        
+      } catch (error) {
+        console.warn(`Apple Music strategy ${i + 1} failed:`, error.message);
+        continue;
+      }
+    }
+    
+    console.warn('❌ No Apple Music previews found after all strategies');
+    return null;
+  }
+
+  // Find the best match from Apple Music results
+  findBestAppleMatch(results, requestedArtist, requestedTitle, strategyType) {
+    // Filter out results without preview URLs first
+    const resultsWithPreviews = results.filter(track => track.previewUrl);
+    
+    if (resultsWithPreviews.length === 0) {
+      console.warn('⚠️ No Apple Music results have preview URLs');
+      return null;
+    }
+    
+    // Strategy-specific matching
+    switch (strategyType) {
+      case 'exact':
+        // Look for exact matches first
+        return resultsWithPreviews.find(track => 
+          this.normalizeString(track.trackName) === this.normalizeString(requestedTitle) &&
+          this.normalizeString(track.artistName) === this.normalizeString(requestedArtist)
+        ) || resultsWithPreviews.find(track => 
+          this.normalizeString(track.artistName) === this.normalizeString(requestedArtist)
+        ) || resultsWithPreviews[0];
+        
+      case 'reversed':
+        // Look for title matches first
+        return resultsWithPreviews.find(track => 
+          this.normalizeString(track.trackName).includes(this.normalizeString(requestedTitle))
+        ) || resultsWithPreviews[0];
+        
+      case 'artist':
+        // Look for exact artist match
+        return resultsWithPreviews.find(track => 
+          this.normalizeString(track.artistName) === this.normalizeString(requestedArtist)
+        ) || resultsWithPreviews.find(track => 
+          this.normalizeString(track.artistName).includes(this.normalizeString(requestedArtist.split(' ')[0]))
+        ) || resultsWithPreviews[0];
+        
+      case 'title':
+        // Look for title match
+        return resultsWithPreviews.find(track => 
+          this.normalizeString(track.trackName).includes(this.normalizeString(requestedTitle))
+        ) || resultsWithPreviews[0];
+        
+      default:
+        // For fuzzy and other strategies, return first result with preview
+        return resultsWithPreviews[0];
+    }
+  }
+  
+  // Helper function to normalize strings for comparison
+  normalizeString(str) {
+    if (!str) return '';
+    return str.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+  }
+
 
   // Check if user is authenticated (for client credentials, always true if we have a token)
   isAuthenticated() {

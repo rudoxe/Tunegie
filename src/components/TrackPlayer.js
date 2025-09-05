@@ -1,412 +1,191 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import tidalApiService from '../services/tidalApi';
 
-export default function TrackPlayer({ track, onSnippetEnd }) {
+const TrackPlayer = ({ track, onSnippetEnd }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [hasPlayed, setHasPlayed] = useState(false);
-  const [snippetStart, setSnippetStart] = useState(0);
-  const [audioContextReady, setAudioContextReady] = useState(false);
+  const [audioReady, setAudioReady] = useState(false);
+  const [audioError, setAudioError] = useState(null);
+  const [previewInfo, setPreviewInfo] = useState(null);
+  const [snippetStart, setSnippetStart] = useState(() => {
+    // For previews, start within first 25 seconds (since previews are ~30s)
+    const maxStart = 20; // Start between 0-20 seconds to allow 5s+ playback
+    return Math.floor(Math.random() * maxStart);
+  });
+  
   const audioRef = useRef(null);
   const intervalRef = useRef(null);
-  const audioContextRef = useRef(null);
+  const snippetTimeoutRef = useRef(null);
   const snippetDuration = 5; // 5 seconds
+
+  // Fetch preview URL when component loads
+  useEffect(() => {
+    const fetchPreview = async () => {
+      if (!track) return;
+      
+      try {
+        console.log(`🎵 Fetching preview for "${track.title}" by ${track.artists?.[0]?.name}...`);
+        
+        const fetchedPreviewInfo = await tidalApiService.getTrackPreviewInfo(track);
+        
+        if (fetchedPreviewInfo.canPreview && fetchedPreviewInfo.previewUrl) {
+          setPreviewInfo(fetchedPreviewInfo);
+          setAudioReady(true);
+          setAudioError(null);
+          console.log('✅ Preview found:', fetchedPreviewInfo.actualTrack, 'from', fetchedPreviewInfo.source);
+        } else {
+          setAudioError('No preview available for this track');
+          setAudioReady(false);
+          setPreviewInfo(null);
+          console.warn('⚠️ No preview URL available');
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch preview:', error);
+        setAudioError(error.message);
+        setAudioReady(false);
+      }
+    };
+
+    fetchPreview();
+
+    // Cleanup on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (snippetTimeoutRef.current) {
+        clearTimeout(snippetTimeoutRef.current);
+      }
+    };
+  }, [track]);
 
   // Reset when track changes
   useEffect(() => {
     setIsPlaying(false);
     setCurrentTime(0);
     setHasPlayed(false);
+    setPreviewInfo(null);
     
-    // Generate random snippet start time (simulate different parts of song)
-    const songLength = track?.duration || 180; // Default 3 minutes
-    const maxStart = Math.max(0, songLength - snippetDuration - 10); // Leave 10s buffer at end
+    // Generate new random snippet start time for previews
+    const maxStart = 20; // Keep within first 20 seconds of 30s preview
     const randomStart = Math.floor(Math.random() * maxStart);
     setSnippetStart(randomStart);
     
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;
     }
   }, [track?.id]);
 
-  // Create audio URL (with fallback for development)
-  const getAudioUrl = () => {
-    // Check if track has a preview URL from TIDAL
-    if (track?.previewUrl) {
-      return track.previewUrl;
-    }
-    
-    // For development: Use sample audio files if available
-    // You can add sample .mp3 files to public/audio/ folder
-    const sampleAudios = {
-      'mock-1': '/audio/sample1.mp3',
-      'mock-ed-1': '/audio/ed-sheeran-sample.mp3',
-      'mock-ts-1': '/audio/taylor-swift-sample.mp3',
-      // Add more mappings as needed
-    };
-    
-    const sampleUrl = sampleAudios[track?.id];
-    if (sampleUrl) {
-      // Check if file exists before returning
-      return sampleUrl;
-    }
-    
-    return null; // No audio available
-  };
 
-  const initAudioContext = () => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('✅ Audio context created and ready');
-        setAudioContextReady(true);
-      } catch (error) {
-        console.error('❌ Failed to create audio context:', error);
-      }
+  // Play real audio preview
+  const playSnippet = async () => {
+    if (!track || !audioRef.current) {
+      console.error('❌ No track or audio ref available');
+      return;
     }
-    
-    // Resume if suspended (required by some browsers)
-    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume().then(() => {
-        console.log('✅ Audio context resumed');
-        setAudioContextReady(true);
-      });
-    }
-  };
 
-  const playSnippet = () => {
-    // Initialize audio context on first user interaction
-    initAudioContext();
-    
-    if (hasPlayed) {
-      // Allow replay
+    if (!previewInfo?.previewUrl || !audioReady) {
+      console.warn('⚠️ No preview URL available for this track');
+      setAudioError('No preview available for this track');
+      return;
+    }
+
+    try {
+      setIsPlaying(true);
+      setHasPlayed(true);
       setCurrentTime(0);
-    }
-
-    setIsPlaying(true);
-    setHasPlayed(true);
-
-    const audioUrl = getAudioUrl();
-    
-    if (audioUrl && audioRef.current) {
-      // Play real audio
-      audioRef.current.src = audioUrl;
-      audioRef.current.currentTime = 0;
-      audioRef.current.volume = 0.7; // Set volume to 70%
-      audioRef.current.play().catch(err => {
-        console.warn('Audio playback failed:', err);
-        // Fallback to generated audio if real audio fails
-        simulatePlayback();
-      });
       
-      // Stop after 5 seconds
-      setTimeout(() => {
-        if (audioRef.current && !audioRef.current.paused) {
-          audioRef.current.pause();
-          stopSnippet();
-          if (onSnippetEnd) onSnippetEnd();
-        }
-      }, snippetDuration * 1000);
-    } else {
-      // Generate audio for development
-      simulatePlayback();
-    }
-  };
-
-  const simulatePlayback = () => {
-    // Create actual audio using Web Audio API
-    createAudioSnippet();
-    
-    intervalRef.current = setInterval(() => {
-      setCurrentTime(prev => {
-        const newTime = prev + 0.1;
-        if (newTime >= snippetDuration) {
-          stopSnippet();
-          if (onSnippetEnd) onSnippetEnd();
-          return snippetDuration;
-        }
-        return newTime;
-      });
-    }, 100);
-  };
-
-  // Create a simple audio snippet with Web Audio API
-  const createAudioSnippet = () => {
-    try {
-      if (!audioContextRef.current) {
-        console.warn('❌ Audio context not initialized');
-        return;
-      }
+      console.log(`🎵 Playing preview for "${track.title}" by ${track.artists?.[0]?.name} starting at ${snippetStart}s`);
       
-      const audioContext = audioContextRef.current;
+      const audio = audioRef.current;
       
-      // Comprehensive audio diagnostics
-      console.log('🔍 Audio Diagnostics:', {
-        'Audio Context State': audioContext.state,
-        'Sample Rate': audioContext.sampleRate,
-        'Current Time': audioContext.currentTime,
-        'Destination': audioContext.destination,
-        'Output Channels': audioContext.destination.channelCount
-      });
+      // Set up audio source and properties
+      audio.src = previewInfo.previewUrl;
+      audio.volume = 0.8;
+      audio.preload = 'auto';
       
-      // Generate different sounds based on artist name
-      const artistName = track?.artists?.[0]?.name?.toLowerCase() || '';
-      const trackTitle = track?.title?.toLowerCase() || '';
-      
-      // Determine style based on artist
-      let style = 'pop'; // default
-      if (artistName.includes('travis') || artistName.includes('carti') || artistName.includes('uzi') || artistName.includes('baby')) {
-        style = 'trap';
-      } else if (artistName.includes('billie') || artistName.includes('weeknd') || artistName.includes('frank')) {
-        style = 'alternative';
-      } else if (artistName.includes('kendrick') || artistName.includes('cole') || artistName.includes('future')) {
-        style = 'hiphop';
-      }
-      
-      const playBeat = (style) => {
-        const now = audioContext.currentTime;
+      // Wait for audio to load enough data
+      await new Promise((resolve, reject) => {
+        const onCanPlay = () => {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          resolve();
+        };
         
-        if (style === 'trap') {
-          // Trap-style beat with 808s
-          createTrapBeat(audioContext, now);
-        } else if (style === 'hiphop') {
-          // Hip-hop beat
-          createHipHopBeat(audioContext, now);
-        } else if (style === 'alternative') {
-          // Alternative/indie sound
-          createAlternativeMelody(audioContext, now);
-        } else {
-          // Pop melody
-          createPopMelody(audioContext, now);
+        const onError = (e) => {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          reject(new Error('Audio failed to load'));
+        };
+        
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('error', onError);
+        
+        // If already ready, resolve immediately
+        if (audio.readyState >= 3) {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          resolve();
         }
+      });
+      
+      // Set start time and play
+      audio.currentTime = snippetStart;
+      await audio.play();
+      
+      console.log(`✅ Started preview playback at ${Math.floor(snippetStart/60)}:${(snippetStart%60).toString().padStart(2,'0')}`);
+      
+      // Track progress with more precise timing
+      const startTime = performance.now();
+      const trackProgress = () => {
+        if (!isPlaying) return;
+        
+        const elapsed = (performance.now() - startTime) / 1000;
+        
+        if (elapsed >= snippetDuration) {
+          setCurrentTime(snippetDuration);
+          stopSnippet();
+          if (onSnippetEnd) onSnippetEnd();
+          return;
+        }
+        
+        setCurrentTime(elapsed);
+        requestAnimationFrame(trackProgress);
       };
       
-      // Resume audio context if suspended (critical for Chrome/Safari)
-      if (audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-          console.log('✅ Audio context resumed before playback');
-          playBeat(style);
-        });
-      } else {
-        playBeat(style);
-      }
+      requestAnimationFrame(trackProgress);
       
-      console.log(`🎵 Playing ${style} style audio for "${track?.title}" by ${track?.artists?.[0]?.name} (${Math.floor(snippetStart/60)}:${(snippetStart%60).toString().padStart(2,'0')} - ${Math.floor((snippetStart+snippetDuration)/60)}:${((snippetStart+snippetDuration)%60).toString().padStart(2,'0')})`);
-      
-      // Vary the audio based on where in the song we are
-      const songPosition = snippetStart / (track?.duration || 180);
-      const currentTime = audioContext.currentTime;
-      if (songPosition < 0.2) {
-        // Intro - softer, building up
-        modifyForIntro(audioContext, currentTime);
-      } else if (songPosition > 0.7) {
-        // Outro - fading, more atmospheric
-        modifyForOutro(audioContext, currentTime);
-      }
+      // Safety timeout to stop after exactly 5 seconds
+      snippetTimeoutRef.current = setTimeout(() => {
+        stopSnippet();
+        if (onSnippetEnd) onSnippetEnd();
+      }, snippetDuration * 1000);
       
     } catch (error) {
-      console.warn('Web Audio API not supported or failed:', error);
+      console.error('🔴 Audio playback failed:', error);
+      setAudioError('Playback failed: ' + error.message);
+      setIsPlaying(false);
     }
   };
-  
-  const createTrapBeat = (audioContext, startTime) => {
-    console.log('🎵 Creating trap beat...');
-    
-    // 808 kick pattern - multiple frequencies for more aggressive sound
-    const kickFreqs = [60, 80, 100, 70, 90];
-    
-    kickFreqs.forEach((freq, i) => {
-      // Primary kick
-      const osc1 = audioContext.createOscillator();
-      const gain1 = audioContext.createGain();
-      
-      osc1.connect(gain1);
-      gain1.connect(audioContext.destination);
-      
-      osc1.frequency.setValueAtTime(freq, startTime + i * 1);
-      osc1.type = 'sine';
-      
-      gain1.gain.setValueAtTime(0.9, startTime + i * 1); // Very high volume
-      gain1.gain.exponentialRampToValueAtTime(0.001, startTime + i * 1 + 0.4);
-      
-      osc1.start(startTime + i * 1);
-      osc1.stop(startTime + i * 1 + 0.4);
-      
-      // Add high-frequency click for punch
-      const osc2 = audioContext.createOscillator();
-      const gain2 = audioContext.createGain();
-      
-      osc2.connect(gain2);
-      gain2.connect(audioContext.destination);
-      
-      osc2.frequency.setValueAtTime(2000, startTime + i * 1);
-      osc2.type = 'square';
-      
-      gain2.gain.setValueAtTime(0.3, startTime + i * 1);
-      gain2.gain.exponentialRampToValueAtTime(0.001, startTime + i * 1 + 0.05);
-      
-      osc2.start(startTime + i * 1);
-      osc2.stop(startTime + i * 1 + 0.05);
-    });
-    
-    console.log('✅ Trap beat oscillators created and started');
-  };
-  
-  const createHipHopBeat = (audioContext, startTime) => {
-    const frequencies = [110, 130, 150, 120, 140];
-    frequencies.forEach((freq, i) => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      osc.frequency.setValueAtTime(freq, startTime + i * 1);
-      osc.type = 'sawtooth';
-      
-      gain.gain.setValueAtTime(0.6, startTime + i * 1); // Increased volume
-      gain.gain.linearRampToValueAtTime(0, startTime + i * 1 + 0.5);
-      
-      osc.start(startTime + i * 1);
-      osc.stop(startTime + i * 1 + 0.5);
-    });
-  };
-  
-  const createAlternativeMelody = (audioContext, startTime) => {
-    const frequencies = [440, 523, 659, 587, 493]; // A, C, E, D, B
-    frequencies.forEach((freq, i) => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      osc.frequency.setValueAtTime(freq, startTime + i * 1);
-      osc.type = 'triangle';
-      
-      gain.gain.setValueAtTime(0.4, startTime + i * 1); // Increased volume
-      gain.gain.linearRampToValueAtTime(0, startTime + i * 1 + 1.2);
-      
-      osc.start(startTime + i * 1);
-      osc.stop(startTime + i * 1 + 1.2);
-    });
-  };
-  
-  const createPopMelody = (audioContext, startTime) => {
-    const frequencies = [262, 294, 330, 349, 392]; // C, D, E, F, G
-    frequencies.forEach((freq, i) => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      osc.frequency.setValueAtTime(freq, startTime + i * 1);
-      osc.type = 'sine';
-      
-      gain.gain.setValueAtTime(0.6, startTime + i * 1); // Increased volume
-      gain.gain.linearRampToValueAtTime(0, startTime + i * 1 + 0.8);
-      
-      osc.start(startTime + i * 1);
-      osc.stop(startTime + i * 1 + 0.8);
-    });
-  };
-  
-  const modifyForIntro = (audioContext, startTime) => {
-    // Add soft ambient pad for intro sections
-    const pad = audioContext.createOscillator();
-    const padGain = audioContext.createGain();
-    
-    pad.connect(padGain);
-    padGain.connect(audioContext.destination);
-    
-    pad.frequency.setValueAtTime(110, startTime);
-    pad.type = 'triangle';
-    
-    padGain.gain.setValueAtTime(0, startTime);
-    padGain.gain.linearRampToValueAtTime(0.05, startTime + 1);
-    padGain.gain.linearRampToValueAtTime(0.03, startTime + 4);
-    padGain.gain.linearRampToValueAtTime(0, startTime + 5);
-    
-    pad.start(startTime);
-    pad.stop(startTime + 5);
-  };
-  
-  const modifyForOutro = (audioContext, startTime) => {
-    // Add reverb-like effect for outro sections
-    const echo = audioContext.createOscillator();
-    const echoGain = audioContext.createGain();
-    
-    echo.connect(echoGain);
-    echoGain.connect(audioContext.destination);
-    
-    echo.frequency.setValueAtTime(880, startTime + 0.3);
-    echo.type = 'sine';
-    
-    echoGain.gain.setValueAtTime(0.02, startTime + 0.3);
-    echoGain.gain.linearRampToValueAtTime(0, startTime + 3);
-    
-    echo.start(startTime + 0.3);
-    echo.stop(startTime + 3);
-  };
-  
-  // Test function to play a simple beep - for debugging audio issues
-  const playTestTone = async () => {
-    try {
-      // Initialize audio context
-      initAudioContext();
-      
-      if (!audioContextRef.current) {
-        console.error('❌ Cannot create test tone - no audio context');
-        return;
-      }
-      
-      const audioContext = audioContextRef.current;
-      
-      // Resume if suspended
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-      
-      console.log('🗏 Playing test tone at 440Hz for 1 second...');
-      
-      // Create a simple 440Hz tone
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note
-      oscillator.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 1);
-      
-      oscillator.onended = () => {
-        console.log('✅ Test tone completed');
-      };
-      
-    } catch (error) {
-      console.error('❌ Test tone failed:', error);
-    }
-  };
+
+
 
   const stopSnippet = () => {
     setIsPlaying(false);
     
-    // Stop real audio if playing
+    // Stop audio playback
     if (audioRef.current && !audioRef.current.paused) {
       audioRef.current.pause();
     }
     
-    // Clear simulation interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    // Clear timeout
+    if (snippetTimeoutRef.current) {
+      clearTimeout(snippetTimeoutRef.current);
+      snippetTimeoutRef.current = null;
     }
   };
 
@@ -423,9 +202,8 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
       stopSnippet();
     }
     
-    // Generate new random snippet start time
-    const songLength = track?.duration || 180;
-    const maxStart = Math.max(0, songLength - snippetDuration - 10);
+    // Generate new random snippet start time for previews
+    const maxStart = 20; // Keep within first 20 seconds of 30s preview
     const newRandomStart = Math.floor(Math.random() * maxStart);
     setSnippetStart(newRandomStart);
     setCurrentTime(0);
@@ -452,11 +230,62 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
       <div className="text-center">
         <div className="mb-4">
           <p className="text-green-200/60 text-sm">Audio Snippet</p>
-          <p className="text-green-400 font-semibold text-lg">{track?.album?.title || 'Unknown Album'}</p>
+          <p className="text-green-400 font-semibold text-lg">
+            {(() => {
+              const albumTitle = track?.album?.title || 'Unknown Album';
+              const trackTitle = track?.title || '';
+              
+              // Enhanced single detection - same logic as in Game.js
+              const isSingle = 
+                albumTitle.toLowerCase().includes('single') ||
+                albumTitle.toLowerCase() === trackTitle.toLowerCase() ||
+                albumTitle.toLowerCase().includes(' - single') ||
+                albumTitle.toLowerCase().includes('(single)') ||
+                albumTitle.toLowerCase().includes('- ep') ||
+                albumTitle.toLowerCase().includes('(ep)') ||
+                // Check if album title contains the track title (likely a single)
+                albumTitle.toLowerCase().includes(trackTitle.toLowerCase()) ||
+                // Check if track title contains album title (reverse case)
+                trackTitle.toLowerCase().includes(albumTitle.toLowerCase()) ||
+                // Common single indicators
+                albumTitle.toLowerCase().includes('remix') ||
+                albumTitle.toLowerCase().includes('feat.') ||
+                albumTitle.toLowerCase().includes('featuring') ||
+                // If album has very few tracks, likely a single/EP
+                albumTitle.split(' ').length <= 3;
+              
+              return isSingle ? 'Single Release' : albumTitle;
+            })()}
+          </p>
           <p className="text-green-200/80 text-xs mt-1">
             Playing from {Math.floor(snippetStart / 60)}:{(snippetStart % 60).toString().padStart(2, '0')} - {Math.floor((snippetStart + snippetDuration) / 60)}:{((snippetStart + snippetDuration) % 60).toString().padStart(2, '0')}
           </p>
         </div>
+        
+        {/* Audio Status */}
+        {audioError && (
+          <div className="mb-4 p-2 bg-red-600/20 border border-red-500/30 rounded">
+            <p className="text-red-300 text-xs">
+              ❌ {audioError}
+            </p>
+          </div>
+        )}
+        
+        {audioReady && previewInfo?.previewUrl && !audioError && (
+          <div className="mb-4 p-2 bg-green-600/20 border border-green-500/30 rounded">
+            <p className="text-green-300 text-xs">
+              🎵 Audio preview ready! Click play to hear 5 seconds.
+            </p>
+          </div>
+        )}
+        
+        {!previewInfo && !audioError && (
+          <div className="mb-4 p-2 bg-yellow-600/20 border border-yellow-500/30 rounded">
+            <p className="text-yellow-300 text-xs">
+              🔍 Searching for preview across multiple sources...
+            </p>
+          </div>
+        )}
         
         {/* Play Buttons */}
         <div className="flex gap-4 justify-center mb-4">
@@ -481,15 +310,6 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
               🔀
             </button>
           )}
-          
-          {/* Test Audio Button - for debugging */}
-          <button
-            onClick={playTestTone}
-            className="w-16 h-16 rounded-full flex items-center justify-center text-xs font-bold transition bg-yellow-600 hover:bg-yellow-500 text-black"
-            title="Test Audio (Simple Beep)"
-          >
-            🔊
-          </button>
         </div>
 
         {/* Progress Bar */}
@@ -508,26 +328,32 @@ export default function TrackPlayer({ track, onSnippetEnd }) {
         {/* Audio Info */}
         <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-3 mt-4">
           <p className="text-green-300 text-xs">
-            🎵 <strong>Generated Audio:</strong> Playing style-based audio snippets! 
-            Each artist gets a unique sound pattern. 
-            {hasPlayed && <span className="block mt-1">Try different artists to hear various music styles!</span>}
+            {audioReady && previewInfo?.previewUrl ? (
+              <>🎵 <strong>Audio Preview:</strong> 30-second snippet ready to play!</>
+            ) : (
+              <>⚠️ <strong>No Audio:</strong> Preview not available for this track.</>
+            )}
+            {hasPlayed && <span className="block mt-1">Listen carefully and make your best guess!</span>}
           </p>
+          
         </div>
 
         {hasPlayed && (
           <p className="text-green-400 text-sm mt-3">
-            ✨ Snippet played! Now make your guess based on what you "heard"
+            ✨ Snippet played! Now make your guess based on what you heard
           </p>
         )}
       </div>
 
-      {/* Hidden audio element for future real implementation */}
+      {/* Audio element for preview playback */}
       <audio
         ref={audioRef}
         style={{ display: 'none' }}
         onEnded={stopSnippet}
-        onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
+        crossOrigin="anonymous"
       />
     </div>
   );
-}
+};
+
+export default TrackPlayer;
