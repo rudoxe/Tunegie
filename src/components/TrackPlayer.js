@@ -49,16 +49,21 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
 
     fetchPreview();
 
+    // Capture ref values at the time the effect runs
+    const currentAudio = audioRef.current;
+    const currentInterval = intervalRef.current;
+    const currentSnippetTimeout = snippetTimeoutRef.current;
+
     // Cleanup on unmount
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (currentAudio) {
+        currentAudio.pause();
       }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (currentInterval) {
+        clearInterval(currentInterval);
       }
-      if (snippetTimeoutRef.current) {
-        clearTimeout(snippetTimeoutRef.current);
+      if (currentSnippetTimeout) {
+        clearTimeout(currentSnippetTimeout);
       }
     };
   }, [track]);
@@ -214,9 +219,12 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
 
   // Cleanup interval on unmount
   useEffect(() => {
+    // Capture ref value at the time the effect runs
+    const currentInterval = intervalRef.current;
+    
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (currentInterval) {
+        clearInterval(currentInterval);
       }
     };
   }, []);

@@ -19,7 +19,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "concurrently --names \"API,REACT\" --prefix-colors \"blue,green\" \"npm run php-server\" \"npm run react-app\"",
+    "react-app": "react-scripts start",
+    "php-server": "C:\\laragon\\bin\\php\\php-8.1.10-Win32-vs16-x64\\php.exe -S localhost:8000 -t .",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -44,6 +46,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17"
   }
