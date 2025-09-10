@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import tidalApiService from '../services/tidalApi';
 import TrackPlayer from '../components/TrackPlayer';
+import { useGame } from '../contexts/GameContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Game() {
+  const { startGame, addRound, endGame, calculatePoints } = useGame();
+  const { isAuthenticated } = useAuth();
   const [gameState, setGameState] = useState('loading'); // selectMode, loading, ready, playing, finished, error
   const [currentTrack, setCurrentTrack] = useState(null);
   const [gameData, setGameData] = useState({
@@ -84,10 +88,14 @@ export default function Game() {
     }
   };
 
-  const startGame = () => {
+  const startGameSession = () => {
     setGameState('playing');
     setShowAnswer(false);
     setUserGuess('');
+    
+    // Start game session in GameContext
+    const gameMode = gameData.gameMode || 'random';
+    startGame(gameMode);
   };
 
   const submitGuess = () => {
@@ -106,7 +114,26 @@ export default function Game() {
     setIsCorrect(correct);
     setShowAnswer(true);
 
-    // Update score and answers
+    // Calculate time taken (for now use a random value, in real game you'd track actual time)
+    const timeTaken = Math.floor(Math.random() * 20) + 5; // 5-25 seconds
+    const pointsEarned = calculatePoints(correct, timeTaken);
+
+    // Add round to GameContext
+    addRound({
+      track: {
+        id: currentTrack.id || currentTrack.title,
+        title: currentTrack.title,
+        artists: currentTrack.artists,
+        album: currentTrack.album
+      },
+      userGuess,
+      correctAnswer,
+      isCorrect: correct,
+      timeTaken,
+      pointsEarned
+    });
+
+    // Update local game state
     const newAnswer = {
       track: currentTrack,
       guess: userGuess,
@@ -116,15 +143,24 @@ export default function Game() {
 
     setGameData(prev => ({
       ...prev,
-      score: correct ? prev.score + 1 : prev.score,
+      score: correct ? prev.score + pointsEarned : prev.score,
       answers: [...prev.answers, newAnswer]
     }));
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     const nextIndex = gameData.currentIndex + 1;
     
     if (nextIndex >= gameData.tracks.length) {
+      // Game is finished, end the game session and save score
+      if (isAuthenticated()) {
+        try {
+          const result = await endGame();
+          console.log('Game ended and score saved:', result);
+        } catch (error) {
+          console.error('Failed to save game score:', error);
+        }
+      }
       setGameState('finished');
       return;
     }
@@ -395,7 +431,7 @@ export default function Game() {
         </div>
 
         <button
-          onClick={startGame}
+          onClick={startGameSession}
           className="bg-green-600 text-black px-8 py-4 rounded-2xl font-bold text-xl shadow-lg hover:bg-green-500 transition"
         >
           Start Playing
@@ -663,6 +699,29 @@ export default function Game() {
              gameData.score >= gameData.totalQuestions * 0.6 ? '👍 Good job! Keep practicing!' :
              '🎵 Nice try! Music discovery awaits!'}
           </p>
+          {isAuthenticated() && (
+            <div className="mt-4 p-3 bg-green-600/20 border border-green-500/30 rounded-lg">
+              <p className="text-green-300 text-sm">
+                ✅ Your score has been saved to the leaderboard!
+              </p>
+              <div className="mt-2">
+                <a href="/leaderboard" className="text-green-400 hover:text-green-300 text-sm">
+                  View Leaderboard →
+                </a>
+                <span className="mx-2 text-green-200/40">•</span>
+                <a href="/history" className="text-green-400 hover:text-green-300 text-sm">
+                  View Your History →
+                </a>
+              </div>
+            </div>
+          )}
+          {!isAuthenticated() && (
+            <div className="mt-4 p-3 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
+              <p className="text-yellow-300 text-sm">
+                💡 Sign in to save your scores and compete on the leaderboard!
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

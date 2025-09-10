@@ -37,6 +37,8 @@ export default function Layout() {
             <Link to="/about" className="hover:text-green-400">About</Link>
             <Link to="/contact" className="hover:text-green-400">Contact</Link>
             <Link to="/game" className="hover:text-green-400">Play</Link>
+            <Link to="/leaderboard" className="hover:text-green-400">Leaderboard</Link>
+            {isAuthenticated() && <Link to="/history" className="hover:text-green-400">History</Link>}
           </nav>
           
           <div className="flex items-center gap-4 border-l border-green-500/30 pl-6">

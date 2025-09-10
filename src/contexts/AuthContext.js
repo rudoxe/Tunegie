@@ -113,7 +113,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated
+    isAuthenticated,
+    API_BASE
   };
 
   return (

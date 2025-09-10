@@ -1,4 +1,8 @@
 <?php
+// Suppress HTML error output for JSON responses
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 // Database configuration for Laragon
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'tunegie_db');
@@ -106,10 +110,19 @@ function base64url_decode($data) {
 
 // Get Authorization header
 function getAuthorizationHeader() {
-    $headers = getallheaders();
-    if (isset($headers['Authorization'])) {
-        return $headers['Authorization'];
+    // Handle different environments
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (isset($headers['Authorization'])) {
+            return $headers['Authorization'];
+        }
     }
+    
+    // Fallback for CLI and other environments
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        return $_SERVER['HTTP_AUTHORIZATION'];
+    }
+    
     return null;
 }
 
