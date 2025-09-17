@@ -106,6 +106,12 @@ export const AuthProvider = ({ children }) => {
     return user !== null && token !== null;
   };
 
+  const updateUser = (updatedUserData) => {
+    const newUser = { ...user, ...updatedUserData };
+    setUser(newUser);
+    localStorage.setItem('tunegie_user', JSON.stringify(newUser));
+  };
+
   const value = {
     user,
     token,
@@ -114,6 +120,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAuthenticated,
+    updateUser,
     API_BASE
   };
 

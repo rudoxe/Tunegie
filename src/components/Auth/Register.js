@@ -33,20 +33,32 @@ const Register = ({ onSuccess, onSwitchToLogin }) => {
 
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.length < 8 || formData.username.length > 16) {
+      newErrors.username = 'Username must be 8-16 characters long';
+    } else if (!/^[a-zA-Z]+$/.test(formData.username)) {
+      newErrors.username = 'Username must contain only Latin letters';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
+    } else if (formData.email.length > 255) {
+      newErrors.email = 'Email must not exceed 255 characters';
+    } else if (!formData.email.includes('@')) {
+      newErrors.email = 'Email must contain @ symbol';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (formData.password.length < 8 || formData.password.length > 16) {
+      newErrors.password = 'Password must be 8-16 characters long';
+    } else if (!/[A-Z]/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    } else if (!/[0-9]/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one digit';
+    } else if (!/[^a-zA-Z0-9]/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one special character';
     }
 
     if (formData.confirmPassword !== formData.password) {

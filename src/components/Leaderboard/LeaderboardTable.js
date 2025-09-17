@@ -1,19 +1,22 @@
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const LeaderboardTable = ({ data, loading, activeTab }) => {
+  const { theme } = useTheme();
+
   if (loading) {
     return (
-      <div className="bg-black/50 rounded-lg p-6">
-        <div className="text-center text-green-400">Loading...</div>
+      <div className={`bg-${theme.cardBg} rounded-lg p-6 animate-glow-pulse`}>
+        <div className={`text-center text-${theme.accent}`}>Loading...</div>
       </div>
     );
   }
 
   if (!data || !data.leaderboard || data.leaderboard.length === 0) {
     return (
-      <div className="bg-black/50 rounded-lg p-6">
-        <div className="text-center text-green-200/60">
-          <p className="text-xl mb-2">🎵 No games played yet</p>
+      <div className={`bg-${theme.cardBg} rounded-lg p-6 animate-fade-in`}>
+        <div className={`text-center text-${theme.textMuted}`}>
+          <p className={`text-xl mb-2 text-${theme.accent}`}>No games played yet</p>
           <p>Be the first to set a high score!</p>
         </div>
       </div>
@@ -22,18 +25,18 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
 
   const getRankIcon = (rank) => {
     switch (rank) {
-      case 1: return '🥇';
-      case 2: return '🥈';
-      case 3: return '🥉';
+      case 1: return '1st';
+      case 2: return '2nd';
+      case 3: return '3rd';
       default: return `#${rank}`;
     }
   };
 
   const getPerformanceColor = (performance) => {
     switch (performance) {
-      case 'excellent': return 'text-green-400';
-      case 'good': return 'text-yellow-400';
-      default: return 'text-gray-400';
+      case 'excellent': return `text-${theme.accent}`;
+      case 'good': return `text-${theme.text}`;
+      default: return `text-${theme.textMuted}`;
     }
   };
 
@@ -49,16 +52,16 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
   };
 
   return (
-    <div className="bg-black/50 rounded-lg overflow-hidden">
+    <div className={`bg-${theme.cardBg} rounded-lg overflow-hidden border border-${theme.accent}/20 animate-slide-in transition-all duration-300 hover:glow`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-green-500/30">
+      <div className={`px-6 py-4 border-b border-${theme.accent}/30`}>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-green-400">
-            {data.type === 'top_scores' && '🏆 Top Scores'}
-            {data.type === 'accuracy' && '🎯 Best Accuracy'}
-            {data.type === 'recent' && '⏰ Recent Games'}
+          <h2 className={`text-xl font-bold text-${theme.accent}`}>
+            {data.type === 'top_scores' && 'Top Scores'}
+            {data.type === 'accuracy' && 'Best Accuracy'}
+            {data.type === 'recent' && 'Recent Games'}
           </h2>
-          <div className="text-green-200/60 text-sm">
+          <div className={`text-${theme.textMuted} text-sm`}>
             Showing {data.showing} of {data.total_entries} players
           </div>
         </div>
@@ -67,31 +70,31 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-800/50">
+          <thead className={`bg-${theme.bgDark}`}>
             <tr>
               {getTableHeaders().map((header, index) => (
                 <th
                   key={index}
-                  className="px-6 py-3 text-left text-xs font-medium text-green-300 uppercase tracking-wider"
+                  className={`px-6 py-3 text-left text-xs font-medium text-${theme.text} uppercase tracking-wider`}
                 >
                   {header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700/30">
+          <tbody className={`divide-y divide-${theme.accent}/10`}>
             {data.leaderboard.map((entry, index) => (
               <tr
                 key={entry.user_id + entry.achieved_at}
-                className={`hover:bg-gray-800/30 transition-colors ${
-                  entry.rank <= 3 ? 'bg-yellow-600/10' : ''
+                className={`hover:bg-${theme.accent}/5 transition-colors ${
+                  entry.rank <= 3 ? `bg-${theme.accent}/10` : ''
                 }`}
               >
                 {/* Rank (except for recent) */}
                 {activeTab !== 'recent' && (
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <span className="text-lg font-bold text-green-400">
+                      <span className={`text-lg font-bold ${entry.rank <= 3 ? `text-${theme.accent} animate-glow-pulse` : `text-${theme.text}`}`}>
                         {getRankIcon(entry.rank)}
                       </span>
                     </div>
@@ -102,7 +105,7 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div>
-                      <div className="text-sm font-medium text-green-200">
+                      <div className={`text-sm font-medium text-${theme.text}`}>
                         {entry.username}
                       </div>
                       <div className={`text-xs ${getPerformanceColor(entry.performance)}`}>
@@ -116,12 +119,12 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
                 {activeTab === 'accuracy' ? (
                   <>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-green-400">
+                      <div className={`text-sm font-bold text-${theme.accent}`}>
                         {entry.accuracy_formatted}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-green-200">
+                      <div className={`text-sm text-${theme.text}`}>
                         {entry.score.toLocaleString()} pts
                       </div>
                     </td>
@@ -129,12 +132,12 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
                 ) : (
                   <>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-green-400">
+                      <div className={`text-sm font-bold text-${theme.accent}`}>
                         {entry.score.toLocaleString()} pts
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-green-200">
+                      <div className={`text-sm text-${theme.text}`}>
                         {entry.accuracy_formatted}
                       </div>
                     </td>
@@ -143,14 +146,14 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
 
                 {/* Rounds */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-green-200">
+                  <div className={`text-sm text-${theme.text}`}>
                     {entry.correct_answers}/{entry.total_rounds}
                   </div>
                 </td>
 
                 {/* Date */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-green-200/60">
+                  <div className={`text-sm text-${theme.textMuted}`}>
                     {entry.achieved_at_formatted}
                   </div>
                 </td>
@@ -161,11 +164,11 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-3 bg-gray-800/30 border-t border-green-500/30">
-        <div className="text-center text-green-200/60 text-sm">
-          {data.type === 'top_scores' && '🏆 Showing highest scores across all players'}
-          {data.type === 'accuracy' && '🎯 Showing most accurate players (minimum 5 rounds)'}
-          {data.type === 'recent' && '⏰ Showing most recent completed games'}
+      <div className={`px-6 py-3 bg-${theme.bgDark} border-t border-${theme.accent}/30`}>
+        <div className={`text-center text-${theme.textMuted} text-sm`}>
+          {data.type === 'top_scores' && 'Showing highest scores across all players'}
+          {data.type === 'accuracy' && 'Showing most accurate players (minimum 5 rounds)'}
+          {data.type === 'recent' && 'Showing most recent completed games'}
         </div>
       </div>
     </div>

@@ -19,12 +19,34 @@ if (!$email || !$password || !$username) {
     sendError('Email, username and password are required');
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    sendError('Invalid email format');
+if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255 || !strpos($email, '@')) {
+    sendError('Invalid username or e-mail');
 }
 
-if (strlen($password) < 6) {
-    sendError('Password must be at least 6 characters long');
+if (strlen($password) < 8 || strlen($password) > 16) {
+    sendError('Invalid username or password');
+}
+
+// Check password complexity requirements
+if (!preg_match('/[A-Z]/', $password)) {
+    sendError('Invalid username or password');
+}
+
+if (!preg_match('/[0-9]/', $password)) {
+    sendError('Invalid username or password');
+}
+
+if (!preg_match('/[^a-zA-Z0-9]/', $password)) {
+    sendError('Invalid username or password');
+}
+
+if (strlen($username) < 8 || strlen($username) > 16) {
+    sendError('Invalid username or e-mail');
+}
+
+// Check if username contains only Latin letters
+if (!preg_match('/^[a-zA-Z]+$/', $username)) {
+    sendError('Invalid username or e-mail');
 }
 
 try {
@@ -32,14 +54,14 @@ try {
     $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
-        sendError('Email already registered');
+        sendError('Invalid username or e-mail');
     }
 
     // Check if username already exists
     $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ?');
     $stmt->execute([$username]);
     if ($stmt->fetch()) {
-        sendError('Username already taken');
+        sendError('Invalid username or e-mail');
     }
 
     $hash = password_hash($password, PASSWORD_BCRYPT);
@@ -50,7 +72,7 @@ try {
     $userId = $pdo->lastInsertId();
     $token = generateJWT($userId, $email);
 
-    sendResponse(['message' => 'Registration successful', 'token' => $token, 'user' => ['id' => $userId, 'email' => $email, 'username' => $username]]);
+    sendResponse(['message' => 'Registration successful', 'token' => $token, 'user' => ['id' => $userId, 'email' => $email, 'username' => $username, 'profile_picture' => null]]);
 } catch (PDOException $e) {
     sendError('Database error: ' . $e->getMessage(), 500);
 }

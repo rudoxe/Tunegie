@@ -19,7 +19,7 @@ if (!$email || !$password) {
 }
 
 try {
-    $stmt = $pdo->prepare('SELECT id, username, email, password_hash FROM users WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, profile_picture FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
@@ -35,7 +35,8 @@ try {
         'user' => [
             'id' => $user['id'],
             'email' => $user['email'],
-            'username' => $user['username']
+            'username' => $user['username'],
+            'profile_picture' => $user['profile_picture']
         ]
     ]);
 } catch (PDOException $e) {
