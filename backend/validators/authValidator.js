@@ -88,8 +88,33 @@ const validateUpdateUser = [
     .withMessage('isActive must be a boolean value')
 ];
 
+// Password reset request validation
+const validatePasswordReset = [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail()
+];
+
+// Reset password validation
+const validateResetPassword = [
+  body('token')
+    .notEmpty()
+    .withMessage('Reset token is required')
+    .isLength({ min: 64, max: 64 })
+    .withMessage('Invalid reset token format'),
+  
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
-  validateUpdateUser
+  validateUpdateUser,
+  validatePasswordReset,
+  validateResetPassword
 };

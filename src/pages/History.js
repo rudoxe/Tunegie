@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import AuthModal from '../components/Auth/AuthModal';
@@ -12,7 +12,7 @@ const History = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedGameMode, setSelectedGameMode] = useState('all');
 
-  const fetchUserStats = async () => {
+  const fetchUserStats = useCallback(async () => {
     if (!isAuthenticated()) {
       setLoading(false);
       return;
@@ -39,11 +39,11 @@ const History = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, API_BASE]);
 
   useEffect(() => {
     fetchUserStats();
-  }, [isAuthenticated()]);
+  }, [fetchUserStats]);
 
   const getGameModeIcon = (mode) => {
     switch (mode) {
@@ -78,7 +78,7 @@ const History = () => {
           </p>
           <button
             onClick={() => setShowAuthModal(true)}
-            className={`bg-${theme.accent} hover:bg-${theme.accent}/80 text-gray-900 px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 hover:glow`}
+            className={`bg-${theme.accent} hover:bg-${theme.accent}/80 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 hover:glow`}
           >
             Sign In to View History
           </button>
@@ -109,7 +109,7 @@ const History = () => {
           <p className={`text-${theme.textMuted} mb-6`}>{error}</p>
           <button
             onClick={fetchUserStats}
-            className={`bg-${theme.accent} hover:bg-${theme.accent}/80 text-gray-900 px-4 py-2 rounded-md transition-all duration-300 hover:scale-105 hover:glow`}
+            className={`bg-${theme.accent} hover:bg-${theme.accent}/80 text-white px-4 py-2 rounded-md transition-all duration-300 hover:scale-105 hover:glow`}
           >
             Try Again
           </button>
@@ -129,7 +129,7 @@ const History = () => {
           </p>
           <a
             href="/game"
-            className={`bg-${theme.accent} hover:bg-${theme.accent}/80 text-gray-900 px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 hover:glow animate-float`}
+            className={`bg-${theme.accent} hover:bg-${theme.accent}/80 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 hover:glow animate-float`}
           >
             Play Your First Game
           </a>
@@ -257,7 +257,7 @@ const History = () => {
               onClick={() => setSelectedGameMode('all')}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 ${
                 selectedGameMode === 'all'
-                  ? `bg-${theme.accent} text-black`
+                  ? `bg-${theme.accent} text-white`
                   : `bg-${theme.bgDark} text-${theme.text} hover:bg-${theme.accent}/20`
               }`}
             >
@@ -269,7 +269,7 @@ const History = () => {
                 onClick={() => setSelectedGameMode(mode)}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-all duration-300 flex items-center gap-1 ${
                   selectedGameMode === mode
-                    ? `bg-${theme.accent} text-black`
+                    ? `bg-${theme.accent} text-white`
                     : `bg-${theme.bgDark} text-${theme.text} hover:bg-${theme.accent}/20`
                 }`}
               >

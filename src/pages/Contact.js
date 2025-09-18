@@ -46,7 +46,7 @@ export default function Contact() {
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
                 <div className={`w-12 h-12 bg-${theme.accent} rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-110 hover:glow`}>
-                  <span className="text-gray-900 font-bold text-lg">@</span>
+                  <span className="text-white font-bold text-lg">@</span>
                 </div>
                 <div>
                   <h3 className={`text-lg font-semibold text-${theme.text} mb-1`}>Email Us</h3>
@@ -57,7 +57,7 @@ export default function Contact() {
 
               <div className="flex items-start space-x-4">
                 <div className={`w-12 h-12 bg-${theme.accent} rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-110 hover:glow`}>
-                  <span className="text-gray-900 font-bold text-lg">?</span>
+                  <span className="text-white font-bold text-lg">?</span>
                 </div>
                 <div>
                   <h3 className={`text-lg font-semibold text-${theme.text} mb-1`}>Support</h3>
@@ -68,7 +68,7 @@ export default function Contact() {
 
               <div className="flex items-start space-x-4">
                 <div className={`w-12 h-12 bg-${theme.accent} rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-110 hover:glow`}>
-                  <span className="text-gray-900 font-bold text-lg">♪</span>
+                  <span className="text-white font-bold text-lg">♪</span>
                 </div>
                 <div>
                   <h3 className={`text-lg font-semibold text-${theme.text} mb-1`}>Music Suggestions</h3>
@@ -82,15 +82,15 @@ export default function Contact() {
           <div className={`bg-${theme.cardBg} rounded-xl p-6 border border-${theme.accent}/20 transition-all duration-300 hover:glow`}>
             <h3 className={`text-xl font-semibold text-${theme.accent} mb-4`}>Follow Us</h3>
             <div className="flex space-x-4">
-              <a href="#" className={`w-10 h-10 bg-${theme.accent} rounded-full flex items-center justify-center text-gray-900 font-bold hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-110 hover:glow`}>
+              <button className={`w-10 h-10 bg-${theme.accent} rounded-full flex items-center justify-center text-white font-bold hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-110 hover:glow`}>
                 T
-              </a>
-              <a href="#" className={`w-10 h-10 bg-${theme.bgDark} rounded-full flex items-center justify-center text-${theme.text} hover:bg-${theme.accent}/20 transition-all duration-300 hover:scale-110`}>
+              </button>
+              <button className={`w-10 h-10 bg-${theme.bgDark} rounded-full flex items-center justify-center text-${theme.text} hover:bg-${theme.accent}/20 transition-all duration-300 hover:scale-110`}>
                 S
-              </a>
-              <a href="#" className={`w-10 h-10 bg-${theme.bgDark} rounded-full flex items-center justify-center text-${theme.text} hover:bg-${theme.accent}/20 transition-all duration-300 hover:scale-110`}>
+              </button>
+              <button className={`w-10 h-10 bg-${theme.bgDark} rounded-full flex items-center justify-center text-${theme.text} hover:bg-${theme.accent}/20 transition-all duration-300 hover:scale-110`}>
                 X
-              </a>
+              </button>
             </div>
             <p className={`text-${theme.textMuted} text-sm mt-3`}>
               Stay updated with the latest features and announcements
@@ -154,7 +154,7 @@ export default function Contact() {
 
               <button
                 type="submit"
-                className={`w-full bg-${theme.accent} text-gray-900 px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-105 hover:glow animate-float`}
+                className={`w-full bg-${theme.accent} text-white px-6 py-3 rounded-lg font-bold text-lg shadow-lg hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-105 hover:glow animate-float`}
               >
                 Send Message
               </button>

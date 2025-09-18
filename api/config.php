@@ -134,4 +134,19 @@ function getJWTFromHeader() {
     }
     return null;
 }
+
+// Get user ID from JWT token in Authorization header
+function getUserIdFromToken() {
+    $jwt = getJWTFromHeader();
+    if (!$jwt) {
+        return null;
+    }
+    
+    $payload = verifyJWT($jwt);
+    if (!$payload) {
+        return null;
+    }
+    
+    return $payload['user_id'] ?? null;
+}
 ?>

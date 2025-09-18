@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import LeaderboardTable from '../components/Leaderboard/LeaderboardTable';
 import PersonalStats from '../components/Leaderboard/PersonalStats';
@@ -15,7 +15,7 @@ const Leaderboard = () => {
   const [gameMode, setGameMode] = useState('random');
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE}/leaderboard.php?type=${activeTab}&game_mode=${gameMode}&limit=25`);
@@ -32,9 +32,9 @@ const Leaderboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE, activeTab, gameMode]);
 
-  const fetchPersonalStats = async () => {
+  const fetchPersonalStats = useCallback(async () => {
     if (!isAuthenticated()) return;
     
     try {
@@ -52,17 +52,15 @@ const Leaderboard = () => {
     } catch (err) {
       console.error('Personal stats fetch error:', err);
     }
-  };
+  }, [isAuthenticated, API_BASE]);
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [activeTab, gameMode]);
+  }, [fetchLeaderboard]);
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      fetchPersonalStats();
-    }
-  }, [isAuthenticated()]);
+    fetchPersonalStats();
+  }, [fetchPersonalStats]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -104,7 +102,7 @@ const Leaderboard = () => {
             </div>
             <button
               onClick={() => setShowAuthModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-black px-4 py-2 rounded-md font-medium transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
             >
               Sign In
             </button>
@@ -130,7 +128,7 @@ const Leaderboard = () => {
             onClick={() => handleTabChange(tab)}
             className={`px-4 py-2 rounded-md font-medium transition-colors ${
               activeTab === tab
-                ? 'bg-green-600 text-black'
+                ? 'bg-green-600 text-white'
                 : 'bg-gray-700 text-green-300 hover:bg-gray-600'
             }`}
           >
@@ -153,7 +151,7 @@ const Leaderboard = () => {
               onClick={() => setGameMode(mode.value)}
               className={`px-3 py-2 rounded-md font-medium transition-colors flex items-center gap-2 ${
                 gameMode === mode.value
-                  ? 'bg-green-600 text-black'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-700 text-green-300 hover:bg-gray-600'
               }`}
             >

@@ -47,46 +47,56 @@ if ($method === 'GET') {
     }
 
 } elseif ($method === 'PUT') {
-    // Update user profile
+    // Update user profile (username only)
     $input = json_decode(file_get_contents('php://input'), true);
     $username = isset($input['username']) ? trim($input['username']) : '';
-    $email = isset($input['email']) ? trim($input['email']) : '';
 
-    if (!$username || !$email) {
-        sendError('Username and email are required');
+    if (!$username) {
+        sendError('Username is required');
     }
 
     if (strlen($username) < 8 || strlen($username) > 16) {
-        sendError('Invalid username or e-mail');
+        sendError('Username must be 8-16 characters long');
     }
 
     // Check if username contains only Latin letters
     if (!preg_match('/^[a-zA-Z]+$/', $username)) {
-        sendError('Invalid username or e-mail');
-    }
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255 || !strpos($email, '@')) {
-        sendError('Invalid username or e-mail');
+        sendError('Username must contain only Latin letters');
     }
 
     try {
+        // Get current username
+        $stmt = $pdo->prepare('SELECT username FROM users WHERE id = ?');
+        $stmt->execute([$userId]);
+        $currentUser = $stmt->fetch();
+        
+        if (!$currentUser) {
+            sendError('User not found', 404);
+        }
+        
+        $oldUsername = $currentUser['username'];
+        
         // Check if username is taken by another user
         $stmt = $pdo->prepare('SELECT id FROM users WHERE username = ? AND id != ?');
         $stmt->execute([$username, $userId]);
         if ($stmt->fetch()) {
-            sendError('Invalid username or e-mail');
+            sendError('Username is already taken');
         }
 
-        // Check if email is taken by another user
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
-        $stmt->execute([$email, $userId]);
-        if ($stmt->fetch()) {
-            sendError('Invalid username or e-mail');
-        }
+        // Start transaction
+        $pdo->beginTransaction();
 
         // Update user profile
-        $stmt = $pdo->prepare('UPDATE users SET username = ?, email = ?, updated_at = NOW() WHERE id = ?');
-        $stmt->execute([$username, $email, $userId]);
+        $stmt = $pdo->prepare('UPDATE users SET username = ?, updated_at = NOW() WHERE id = ?');
+        $stmt->execute([$username, $userId]);
+
+        // Track username change in history (only if username actually changed)
+        if ($oldUsername !== $username) {
+            $stmt = $pdo->prepare('INSERT INTO username_history (user_id, old_username, new_username) VALUES (?, ?, ?)');
+            $stmt->execute([$userId, $oldUsername, $username]);
+        }
+
+        $pdo->commit();
 
         // Return updated user info
         $stmt = $pdo->prepare('SELECT id, username, email, profile_picture, created_at FROM users WHERE id = ?');
@@ -104,6 +114,7 @@ if ($method === 'GET') {
             ]
         ]);
     } catch (PDOException $e) {
+        $pdo->rollback();
         sendError('Database error: ' . $e->getMessage(), 500);
     }
 

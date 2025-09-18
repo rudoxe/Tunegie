@@ -12,6 +12,7 @@ import Game from "./pages/Game";
 import Leaderboard from "./pages/Leaderboard";
 import History from "./pages/History";
 import Profile from "./components/Profile/Profile";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="history" element={<History />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="reset-password" element={<ResetPassword />} />
             </Route>
           </Routes>
         </GameProvider>

@@ -88,7 +88,7 @@ export default function About() {
           </p>
           <Link
             to="/game"
-            className={`bg-${theme.accent} text-gray-900 px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-105 hover:glow inline-block animate-float`}
+            className={`bg-${theme.accent} text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-105 hover:glow inline-block animate-float`}
           >
             Start Playing Now
           </Link>

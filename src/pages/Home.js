@@ -18,7 +18,7 @@ export default function Home() {
         </p>
         <Link
           to="/game"
-          className={`bg-${theme.primary} text-gray-900 px-8 py-4 rounded-2xl font-bold text-xl shadow-lg hover:bg-${theme.primaryHover} transition-all duration-300 hover:scale-105 hover:${theme.glow} animate-fade-in`}
+          className={`bg-${theme.primary} text-white px-8 py-4 rounded-2xl font-bold text-xl shadow-lg hover:bg-${theme.primaryHover} transition-all duration-300 hover:scale-105 hover:${theme.glow} animate-fade-in`}
         >
           Start Playing
         </Link>

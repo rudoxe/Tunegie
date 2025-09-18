@@ -43,7 +43,7 @@ const ThemeSelector = () => {
             
             {/* Active Indicator */}
             {currentTheme === themeKey && (
-              <div className={`absolute -top-2 -right-2 w-6 h-6 bg-${themeData.primary} rounded-full flex items-center justify-center text-black text-xs font-bold animate-bounce`}>
+              <div className={`absolute -top-2 -right-2 w-6 h-6 bg-${themeData.primary} rounded-full flex items-center justify-center text-white text-xs font-bold animate-bounce`}>
                 ✓
               </div>
             )}

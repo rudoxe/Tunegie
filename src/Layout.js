@@ -33,7 +33,7 @@ export default function Layout() {
     <div className={`min-h-screen bg-gradient-to-br ${theme.background} text-${theme.textMuted} flex flex-col transition-all duration-500`}>
       <header className="flex items-center justify-between p-6 backdrop-blur-sm">
         <h1 className={`text-3xl font-bold flex items-center gap-3 text-${theme.text} transition-colors duration-300`}>
-          <span className={`w-10 h-10 rounded-full bg-${theme.primary} flex items-center justify-center text-gray-900 font-black transition-all duration-300 hover:scale-110 hover:${theme.glow}`}>
+          <span className={`w-10 h-10 rounded-full bg-${theme.primary} flex items-center justify-center text-white font-black transition-all duration-300 hover:scale-110 hover:${theme.glow}`}>
             T
           </span>
           <span className="hover:scale-105 transition-transform duration-200">Tunegie</span>
@@ -81,13 +81,13 @@ export default function Layout() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleLogin}
-                  className={`bg-${theme.primary} hover:bg-${theme.primaryHover} text-gray-900 px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 hover:${theme.glow}`}
+                  className={`bg-${theme.primary} hover:bg-${theme.primaryHover} text-white px-3 py-1 rounded-md text-sm font-medium transition-all duration-200 hover:scale-105 hover:${theme.glow}`}
                 >
                   Login
                 </button>
                 <button
                   onClick={handleRegister}
-                  className={`border border-${theme.primary} text-${theme.text} hover:bg-${theme.primary} hover:text-gray-900 px-3 py-1 rounded-md text-sm transition-all duration-200 hover:scale-105`}
+                  className={`border border-${theme.primary} text-${theme.text} hover:bg-${theme.primary} hover:text-white px-3 py-1 rounded-md text-sm transition-all duration-200 hover:scale-105`}
                 >
                   Sign Up
                 </button>

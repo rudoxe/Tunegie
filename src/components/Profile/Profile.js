@@ -13,13 +13,15 @@ const Profile = () => {
     created_at: ''
   });
   const [formData, setFormData] = useState({
-    username: '',
-    email: ''
+    username: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [usernameHistory, setUsernameHistory] = useState([]);
+  const [showUsernameHistory, setShowUsernameHistory] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,8 +43,7 @@ const Profile = () => {
       if (response.ok && !data.error) {
         setProfile(data.user);
         setFormData({
-          username: data.user.username,
-          email: data.user.email
+          username: data.user.username
         });
       } else {
         setErrors({ fetch: data.error });
@@ -79,18 +80,32 @@ const Profile = () => {
       newErrors.username = 'Username must contain only Latin letters';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (formData.email.length > 255) {
-      newErrors.email = 'Email must not exceed 255 characters';
-    } else if (!formData.email.includes('@')) {
-      newErrors.email = 'Email must contain @ symbol';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const fetchUsernameHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/username-history.php', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && !data.error) {
+        setUsernameHistory(data.history || []);
+      } else {
+        console.error('Failed to fetch username history:', data.error);
+      }
+    } catch (error) {
+      console.error('Failed to fetch username history:', error);
+    } finally {
+      setHistoryLoading(false);
+    }
   };
 
   const handleUpdateProfile = async (e) => {
@@ -118,9 +133,13 @@ const Profile = () => {
       if (response.ok && !data.error) {
         setProfile(data.user);
         // Update the user in AuthContext
-        updateUser({ username: data.user.username, email: data.user.email });
+        updateUser({ username: data.user.username });
         setMessage('Profile updated successfully!');
         setErrors({});
+        // Refresh username history if it was being displayed
+        if (showUsernameHistory) {
+          fetchUsernameHistory();
+        }
       } else {
         setErrors({ submit: data.error });
       }
@@ -230,7 +249,7 @@ const Profile = () => {
                 )}
               </div>
               
-              <label className={`mt-2 cursor-pointer bg-${theme.primary} hover:bg-${theme.primaryHover} text-gray-900 px-3 py-1 rounded text-sm transition-all duration-200 hover:scale-105 hover:${theme.glow}`}>
+              <label className={`mt-2 cursor-pointer bg-${theme.primary} hover:bg-${theme.primaryHover} text-white px-3 py-1 rounded text-sm transition-all duration-200 hover:scale-105 hover:${theme.glow}`}>
                 Change Photo
                 <input
                   type="file"
@@ -274,9 +293,23 @@ const Profile = () => {
             )}
 
             <div>
-              <label htmlFor="username" className={`block text-${theme.textSecondary} text-sm font-medium mb-1`}>
-                Username
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="username" className={`block text-${theme.textSecondary} text-sm font-medium`}>
+                  Username
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!showUsernameHistory) {
+                      fetchUsernameHistory();
+                    }
+                    setShowUsernameHistory(!showUsernameHistory);
+                  }}
+                  className={`text-${theme.primary} hover:text-${theme.primaryHover} text-xs underline transition-colors duration-200`}
+                >
+                  {showUsernameHistory ? 'Hide History' : 'View History'}
+                </button>
+              </div>
               <input
                 type="text"
                 id="username"
@@ -293,27 +326,34 @@ const Profile = () => {
               {errors.username && (
                 <p className="text-red-400 text-xs mt-1 animate-slide-in">{errors.username}</p>
               )}
-            </div>
-
-            <div>
-              <label htmlFor="email" className={`block text-${theme.textSecondary} text-sm font-medium mb-1`}>
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 bg-gray-800 border rounded-md text-white focus:outline-none focus:ring-2 transition-all duration-200 ${
-                  errors.email 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : `border-gray-600 focus:ring-${theme.ring} focus:border-${theme.primary}`
-                }`}
-                placeholder="Your email"
-              />
-              {errors.email && (
-                <p className="text-red-400 text-xs mt-1 animate-slide-in">{errors.email}</p>
+              
+              {showUsernameHistory && (
+                <div className={`mt-3 p-3 bg-${theme.surfaceBorder}/10 border border-${theme.surfaceBorder} rounded-md`}>
+                  <h4 className={`text-${theme.textSecondary} text-sm font-medium mb-2`}>Username History</h4>
+                  {historyLoading ? (
+                    <div className="flex items-center justify-center py-2">
+                      <div className={`w-4 h-4 border-2 border-${theme.primary} border-t-transparent rounded-full animate-spin mr-2`}></div>
+                      <span className={`text-${theme.textMuted} text-xs`}>Loading...</span>
+                    </div>
+                  ) : usernameHistory.length > 0 ? (
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {usernameHistory.map((entry, index) => (
+                        <div key={index} className={`text-xs text-${theme.textMuted} flex justify-between items-center py-1`}>
+                          <span>
+                            <span className="font-mono">{entry.old_username}</span>
+                            <span className="mx-2">→</span>
+                            <span className="font-mono">{entry.new_username}</span>
+                          </span>
+                          <span className="text-xs opacity-75">
+                            {new Date(entry.changed_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={`text-${theme.textMuted} text-xs`}>No username changes found.</p>
+                  )}
+                </div>
               )}
             </div>
 
@@ -323,7 +363,7 @@ const Profile = () => {
               className={`w-full py-2 px-4 rounded-md font-medium transition-all duration-200 hover:scale-105 ${
                 loading
                   ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                  : `bg-${theme.primary} hover:bg-${theme.primaryHover} text-gray-900 hover:${theme.glow}`
+                  : `bg-${theme.primary} hover:bg-${theme.primaryHover} text-white hover:${theme.glow}`
               }`}
             >
               {loading ? (
