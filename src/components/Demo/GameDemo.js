@@ -276,8 +276,6 @@ const GameDemo = () => {
       </div>
 
       <div className="mt-4 text-center text-green-200/60 text-sm">
-        <p>This demo simulates a 5-round music guessing game.</p>
-        <p>Test different game modes and see how they appear on the leaderboard!</p>
         <p>Current mode: <span className="text-green-400 font-medium">
           {selectedMode === 'random' ? '🎲 Random Mix' :
            selectedMode === 'artist' ? '🎤 Artist Challenge (The Weeknd)' :

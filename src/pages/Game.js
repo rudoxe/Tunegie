@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import tidalApiService from '../services/tidalApi';
+import itunesApiService from '../services/itunesApi';
 import TrackPlayer from '../components/TrackPlayer';
 import { useGame } from '../contexts/GameContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,8 @@ export default function Game() {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [gameData, setGameData] = useState({
     tracks: [],
+    backupTracks: [],
+    usedTrackIds: [],
     currentIndex: 0,
     score: 0,
     totalQuestions: 10,
@@ -37,39 +39,52 @@ export default function Game() {
 
     try {
       console.log(`🎮 Initializing Tunegie Game (${gameMode} mode)...`);
+      console.log('🎵 Using iTunes API for real music tracks');
       
-      // Test TIDAL API connection
-      const connected = await tidalApiService.testConnection();
+      // Test iTunes API connection
+      const connected = await itunesApiService.testConnection();
       setApiConnected(connected);
 
       if (!connected) {
-        throw new Error('Unable to connect to TIDAL API. Please check your credentials.');
+        throw new Error('Unable to connect to iTunes API. Please check your internet connection.');
       }
 
       // Load tracks based on game mode
       let tracks = [];
       console.log(`🎵 Loading ${gameMode} tracks...`);
       
+      // Load more tracks than needed to avoid duplicates and have variety
+      const tracksToLoad = Math.max(gameData.totalQuestions * 3, 50); // Load 3x more tracks for variety
+      
       if (gameMode === 'artist' && selectedOption) {
-        tracks = await tidalApiService.getTracksByArtist(selectedOption, gameData.totalQuestions);
-        console.log(`🎤 Loaded tracks for artist: ${selectedOption}`);
+        tracks = await itunesApiService.getTracksByArtist(selectedOption, tracksToLoad);
+        console.log(`🎤 Loaded ${tracks.length} tracks for artist: ${selectedOption}`);
       } else if (gameMode === 'genre' && selectedOption) {
-        tracks = await tidalApiService.getTracksByGenre(selectedOption, gameData.totalQuestions);
-        console.log(`🎼 Loaded tracks for genre: ${selectedOption}`);
+        tracks = await itunesApiService.getTracksByGenre(selectedOption, tracksToLoad);
+        console.log(`🎼 Loaded ${tracks.length} tracks for genre: ${selectedOption}`);
       } else {
-        tracks = await tidalApiService.getRandomTracksForGame(gameData.totalQuestions);
-        console.log('🎲 Loaded random tracks');
+        tracks = await itunesApiService.getRandomTracksForGame(tracksToLoad);
+        console.log(`🎲 Loaded ${tracks.length} random tracks`);
       }
       
       if (tracks.length === 0) {
         throw new Error(`No tracks available for ${gameMode} mode. Please try a different option.`);
       }
 
-      console.log(`✅ Loaded ${tracks.length} tracks for the game`);
+      // Shuffle all tracks to ensure randomness
+      const shuffledTracks = tracks.sort(() => 0.5 - Math.random());
+      
+      // Select only the number we need for the game (but keep extras as backups)
+      const gameTracks = shuffledTracks.slice(0, gameData.totalQuestions);
+      const backupTracks = shuffledTracks.slice(gameData.totalQuestions);
+      
+      console.log(`✅ Selected ${gameTracks.length} tracks for the game (${backupTracks.length} backup tracks available)`);
       
       setGameData(prev => ({
         ...prev,
-        tracks: tracks,
+        tracks: gameTracks,
+        backupTracks: backupTracks, // Store backup tracks for replacement if needed
+        usedTrackIds: [], // Track which songs have been used
         currentIndex: 0,
         score: 0,
         answers: [],
@@ -106,11 +121,65 @@ export default function Game() {
     const titleLower = currentTrack.title.toLowerCase();
     const artistLower = currentTrack.artists[0].name.toLowerCase();
 
-    // Check if guess contains both title and artist or just title
-    const titleMatch = titleLower.includes(guessLower) || guessLower.includes(titleLower);
-    const artistMatch = artistLower.includes(guessLower) || guessLower.includes(artistLower);
-    const correct = titleMatch || artistMatch;
+    // Declare variables at function level
+    let correct = false;
+    let matchType = '';
 
+    // Require minimum length to prevent single letter matches
+    if (guessLower.length < 3) {
+      correct = false;
+      matchType = 'too short';
+      console.log(`❌ Guess too short: "${userGuess}" (minimum 3 characters)`);
+    } else {
+      // More strict matching logic - clean strings for better comparison
+      const cleanGuess = guessLower.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+      const cleanTitle = titleLower.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+      const cleanArtist = artistLower.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+      
+      // Check for substantial matches (not just single letters)
+      
+      // 1. Exact matches (highest priority)
+      if (cleanGuess === cleanTitle || cleanGuess === cleanArtist) {
+        correct = true;
+        matchType = 'exact';
+      }
+      // 2. Very close matches (80%+ similarity for longer strings)
+      else if (cleanGuess.length >= 5) {
+        const titleSimilarity = calculateSimilarity(cleanGuess, cleanTitle);
+        const artistSimilarity = calculateSimilarity(cleanGuess, cleanArtist);
+        
+        if (titleSimilarity >= 0.8 || artistSimilarity >= 0.8) {
+          correct = true;
+          matchType = 'very close';
+        }
+        // 3. Contains significant portion (50%+ of the guess must match)
+        else {
+          const titleOverlap = calculateOverlap(cleanGuess, cleanTitle);
+          const artistOverlap = calculateOverlap(cleanGuess, cleanArtist);
+          
+          if (titleOverlap >= 0.5 || artistOverlap >= 0.5) {
+            correct = true;
+            matchType = 'partial';
+          }
+        }
+      }
+      // 4. For shorter guesses (3-4 chars), require exact substring match
+      else {
+        if (cleanTitle.includes(cleanGuess) || cleanArtist.includes(cleanGuess)) {
+          // Additional check: the guess should be a meaningful part (not just common words)
+          const commonWords = ['the', 'and', 'you', 'are', 'for', 'all', 'not', 'but', 'can', 'had', 'was'];
+          if (!commonWords.includes(cleanGuess)) {
+            correct = true;
+            matchType = 'substring';
+          }
+        }
+      }
+      
+    }
+    
+    // Log result and update UI (runs for both short and long guesses)
+    console.log(`🎯 Guess: "${userGuess}" | Title: "${currentTrack.title}" | Artist: "${currentTrack.artists[0].name}" | Match: ${correct ? `✅ ${matchType}` : `❌ ${matchType || 'no match'}`}`);
+    
     setIsCorrect(correct);
     setShowAnswer(true);
 
@@ -165,14 +234,23 @@ export default function Game() {
       return;
     }
 
+    // Mark current track as used
+    const currentTrackId = currentTrack?.id;
+    const updatedUsedTrackIds = currentTrackId ? [...gameData.usedTrackIds, currentTrackId] : gameData.usedTrackIds;
+    
     setGameData(prev => ({
       ...prev,
-      currentIndex: nextIndex
+      currentIndex: nextIndex,
+      usedTrackIds: updatedUsedTrackIds
     }));
-    setCurrentTrack(gameData.tracks[nextIndex]);
+    
+    const nextTrack = gameData.tracks[nextIndex];
+    setCurrentTrack(nextTrack);
     setUserGuess('');
     setShowAnswer(false);
     setCheatMode(false); // Auto-disable cheat mode on next question
+    
+    console.log(`🎵 Playing track ${nextIndex + 1}/${gameData.totalQuestions}: "${nextTrack?.title}" by ${nextTrack?.artists?.[0]?.name}`);
   };
 
   const restartGame = () => {
@@ -185,6 +263,59 @@ export default function Game() {
 
   const selectGameMode = (mode, option = null) => {
     initializeGame(mode, option);
+  };
+  
+  // Helper function to calculate string similarity (Levenshtein distance based)
+  const calculateSimilarity = (str1, str2) => {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    
+    if (len1 === 0) return len2 === 0 ? 1 : 0;
+    if (len2 === 0) return 0;
+    
+    const matrix = [];
+    for (let i = 0; i <= len2; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= len1; j++) {
+      matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= len2; i++) {
+      for (let j = 1; j <= len1; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    
+    const maxLen = Math.max(len1, len2);
+    return (maxLen - matrix[len2][len1]) / maxLen;
+  };
+  
+  // Helper function to calculate overlap percentage
+  const calculateOverlap = (guess, target) => {
+    const guessWords = guess.split(' ');
+    const targetWords = target.split(' ');
+    
+    let matchedChars = 0;
+    let totalGuessChars = guess.replace(/\s/g, '').length;
+    
+    for (const guessWord of guessWords) {
+      if (guessWord.length >= 2) { // Only count meaningful words
+        if (target.includes(guessWord)) {
+          matchedChars += guessWord.length;
+        }
+      }
+    }
+    
+    return totalGuessChars > 0 ? matchedChars / totalGuessChars : 0;
   };
 
   // Artist Selector Component
@@ -353,6 +484,36 @@ export default function Game() {
         </div>
       </div>
 
+      {/* Login Warning for Non-Authenticated Users */}
+      {!isAuthenticated() && (
+        <div className="bg-yellow-600/20 border border-yellow-500/40 rounded-xl p-6 mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="text-2xl">⚠️</div>
+            <h3 className="text-yellow-300 font-bold text-lg">Playing as Guest</h3>
+          </div>
+          <div className="text-yellow-200/90 space-y-2">
+            <p className="font-medium">Your game stats will not be saved or appear on the leaderboard.</p>
+            <p className="text-sm">
+              <span className="font-medium">Sign in to:</span> Save your scores • Compete on leaderboards • Track your progress • View game history
+            </p>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button
+              onClick={() => window.location.href = '/login'}
+              className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg font-medium text-sm transition"
+            >
+              Sign In Now
+            </button>
+            <button
+              onClick={() => window.location.href = '/register'}
+              className="border border-yellow-500 text-yellow-300 hover:bg-yellow-500 hover:bg-opacity-10 px-4 py-2 rounded-lg font-medium text-sm transition"
+            >
+              Create Account
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="text-center mt-8">
         <a
           href="/"
@@ -368,8 +529,8 @@ export default function Game() {
     <div className="text-center py-20">
       <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mb-6"></div>
       <h2 className="text-2xl font-semibold text-green-400 mb-4">Loading Tunegie...</h2>
-      <p className="text-green-200/80">
-        Connecting to TIDAL API and preparing your music challenge...
+      <p className="text-green-200 text-opacity-80">
+        Connecting to iTunes API and loading real songs with previews...
       </p>
     </div>
   );
@@ -378,13 +539,13 @@ export default function Game() {
     <div className="text-center py-20 max-w-2xl mx-auto">
       <div className="text-6xl mb-6">❌</div>
       <h2 className="text-3xl font-bold text-red-400 mb-4">Connection Error</h2>
-      <p className="text-green-200/80 mb-6">{errorMessage}</p>
-      <div className="bg-gray-900/30 rounded-xl p-6 mb-6">
+      <p className="text-green-200 text-opacity-80 mb-6">{errorMessage}</p>
+      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-6">
         <h3 className="text-lg font-semibold text-green-400 mb-3">Troubleshooting:</h3>
-        <ul className="text-left text-green-200/80 space-y-2">
+        <ul className="text-left text-green-200 text-opacity-80 space-y-2">
           <li>• Check your internet connection</li>
-          <li>• Verify TIDAL API credentials are correct</li>
-          <li>• Make sure your TIDAL app is approved for production</li>
+          <li>• Make sure iTunes Store is accessible in your region</li>
+          <li>• Try refreshing the page</li>
           <li>• Check browser console for detailed error messages</li>
         </ul>
       </div>
@@ -415,18 +576,18 @@ export default function Game() {
         <div className="text-6xl mb-6">{modeInfo.icon}</div>
         <h2 className="text-4xl font-bold text-green-400 mb-6">Ready to Play!</h2>
         <h3 className="text-2xl font-semibold text-green-300 mb-4">{modeInfo.title}</h3>
-        <p className="text-lg text-green-200/80 mb-8">
+        <p className="text-lg text-green-200 text-opacity-80 mb-8">
           {modeInfo.desc} We've loaded {gameData.tracks.length} tracks for your guessing challenge.
         </p>
         
-        <div className="bg-gray-900/30 rounded-xl p-6 mb-8">
+        <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-8">
           <h3 className="text-xl font-semibold text-green-400 mb-4">How to Play:</h3>
-          <div className="space-y-3 text-green-200/80">
-            <p>🎧 Listen to 5-second audio snippets</p>
-            <p>🎯 Guess the song title or artist name</p>
-            <p>⏱️ No time limit - replay snippets anytime!</p>
-            <p>🏆 Score points for each correct guess</p>
-            <p>📈 See your final score at the end</p>
+          <div className="space-y-3 text-green-200 text-opacity-80">
+            <p>Listen to 5-second audio snippets</p>
+            <p>Guess the song title or artist name</p>
+            <p>No time limit - replay snippets anytime!</p>
+            <p>Score points for each correct guess</p>
+            <p>See your final score at the end</p>
           </div>
         </div>
 
@@ -448,7 +609,7 @@ export default function Game() {
           Question {gameData.currentIndex + 1} of {gameData.totalQuestions}
         </div>
         <div className="text-green-400 font-semibold">
-          Score: {gameData.score}/{gameData.currentIndex + (showAnswer ? 1 : 0)}
+          Score: {gameData.score} points
         </div>
       </div>
 
@@ -477,13 +638,13 @@ export default function Game() {
 
       {/* Cheat Mode Answer Display */}
       {cheatMode && !showAnswer && currentTrack && (
-        <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-xl p-4 mb-6 text-center">
+        <div className="bg-yellow-600 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-xl p-4 mb-6 text-center">
           <div className="text-2xl mb-2">🕵️‍♂️</div>
           <h4 className="text-yellow-400 font-bold text-lg mb-2">Cheat Mode Active!</h4>
           <p className="text-yellow-300 font-semibold text-xl">
             {currentTrack.title} - {currentTrack.artists[0].name}
           </p>
-          <p className="text-yellow-200/80 text-sm mt-2">
+          <p className="text-yellow-200 text-opacity-80 text-sm mt-2">
             This will automatically turn off when you go to the next question.
           </p>
         </div>
@@ -491,7 +652,7 @@ export default function Game() {
 
       {/* Track Information */}
       {currentTrack && (
-        <div className="bg-gray-900/30 rounded-xl p-8 mb-8">
+        <div className="bg-gray-900 bg-opacity-30 rounded-xl p-8 mb-8">
           <h3 className="text-2xl font-bold text-green-400 mb-6 text-center">
             Guess This Track!
           </h3>
@@ -505,15 +666,15 @@ export default function Game() {
             
             {/* Track Info Grid */}
             <div className="grid md:grid-cols-2 gap-4 text-center">
-              <div className="bg-black/50 rounded-lg p-4">
-                <p className="text-green-200/60 text-sm mb-1">Full Song Duration</p>
+              <div className="bg-black bg-opacity-50 rounded-lg p-4">
+                <p className="text-green-200 text-opacity-60 text-sm mb-1">Full Song Duration</p>
                 <p className="text-green-300 font-semibold">
                   {Math.floor(currentTrack.duration / 60)}:{(currentTrack.duration % 60).toString().padStart(2, '0')}
                 </p>
               </div>
 
-              <div className="bg-black/50 rounded-lg p-4">
-                <p className="text-green-200/60 text-sm mb-1">Release Year</p>
+              <div className="bg-black bg-opacity-50 rounded-lg p-4">
+                <p className="text-green-200 text-opacity-60 text-sm mb-1">Release Year</p>
                 <p className="text-green-300 font-semibold">
                   {currentTrack.album?.releaseDate ? new Date(currentTrack.album.releaseDate).getFullYear() : 'Unknown'}
                 </p>
@@ -522,8 +683,8 @@ export default function Game() {
             
             {/* Additional Album Info */}
             <div className="text-center mt-4">
-              <div className="bg-black/30 rounded-lg p-3 inline-block">
-                <p className="text-green-200/60 text-xs mb-1">💿 Album Information</p>
+              <div className="bg-black bg-opacity-30 rounded-lg p-3 inline-block">
+                <p className="text-green-200 text-opacity-60 text-xs mb-1">💿 Album Information</p>
                 <p className="text-green-400 text-sm font-semibold">
                   From: {(() => {
                     const albumTitle = currentTrack.album?.title || 'Unknown Album';
@@ -559,7 +720,7 @@ export default function Game() {
 
       {/* Answer Section */}
       {!showAnswer ? (
-        <div className="bg-gray-900/30 rounded-xl p-8">
+        <div className="bg-gray-900 bg-opacity-30 rounded-xl p-8">
           <label className="block text-green-300 font-semibold mb-4 text-center">
             Enter your guess (song title or artist name):
           </label>
@@ -569,8 +730,8 @@ export default function Game() {
               value={userGuess}
               onChange={(e) => setUserGuess(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && submitGuess()}
-              placeholder="Type your guess here..."
-              className="flex-1 px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-green-300 placeholder-green-200/40 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+              placeholder="Type song title or artist name (min 3 characters)..."
+              className="flex-1 px-4 py-3 bg-black bg-opacity-50 border border-gray-700 rounded-lg text-green-300 placeholder-green-200 placeholder-opacity-40 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
             />
             <button
               onClick={submitGuess}
@@ -584,12 +745,12 @@ export default function Game() {
       ) : (
         <div className="space-y-6">
           {/* Result */}
-          <div className={`rounded-xl p-6 text-center ${isCorrect ? 'bg-green-600/20 border border-green-500/30' : 'bg-red-600/20 border border-red-500/30'}`}>
+          <div className={`rounded-xl p-6 text-center ${isCorrect ? 'bg-green-600 bg-opacity-20 border border-green-500 border-opacity-30' : 'bg-red-600 bg-opacity-20 border border-red-500 border-opacity-30'}`}>
             <div className="text-4xl mb-3">{isCorrect ? '🎉' : '❌'}</div>
             <h3 className={`text-2xl font-bold mb-2 ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
               {isCorrect ? 'Correct!' : 'Not quite...'}
             </h3>
-            <p className="text-green-200/80 mb-4">
+            <p className="text-green-200 text-opacity-80 mb-4">
               Your guess: <span className="font-semibold">\"{userGuess}\"</span>
             </p>
             <p className="text-green-300 font-semibold mb-6">
@@ -603,7 +764,7 @@ export default function Game() {
                   <img 
                     src={currentTrack.artworkUrl.replace('100x100', '300x300')} // Get higher resolution
                     alt={`${currentTrack.album?.title} album cover`}
-                    className="w-48 h-48 rounded-xl shadow-lg border-2 border-green-500/30 object-cover"
+                    className="w-48 h-48 rounded-xl shadow-lg border-2 border-green-500 border-opacity-30 object-cover"
                     onError={(e) => {
                       // Fallback to original size if higher resolution fails
                       e.target.src = currentTrack.artworkUrl;
@@ -611,7 +772,7 @@ export default function Game() {
                   />
                 ) : (
                   // Fallback when no artwork is available
-                  <div className="w-48 h-48 rounded-xl shadow-lg border-2 border-green-500/30 bg-gradient-to-br from-green-600/30 to-green-800/30 flex items-center justify-center">
+                  <div className="w-48 h-48 rounded-xl shadow-lg border-2 border-green-500 border-opacity-30 bg-gradient-to-br from-green-600 from-opacity-30 to-green-800 to-opacity-30 flex items-center justify-center">
                     <div className="text-center text-green-300">
                       <div className="text-6xl mb-2">🎵</div>
                       <p className="text-sm font-semibold">{currentTrack.album?.title || 'Album'}</p>
@@ -623,7 +784,7 @@ export default function Game() {
                 </div>
               </div>
               
-              <div className="bg-black/30 rounded-lg p-4 max-w-md">
+              <div className="bg-black bg-opacity-30 rounded-lg p-4 max-w-md">
                 {(() => {
                   const albumTitle = currentTrack.album?.title || 'Unknown Album';
                   const trackTitle = currentTrack.title;
@@ -649,14 +810,14 @@ export default function Game() {
                   
                   return (
                     <>
-                      <p className="text-green-200/60 text-sm mb-1">
+                      <p className="text-green-200 text-opacity-60 text-sm mb-1">
                         Release
                       </p>
                       <p className="text-green-300 font-semibold text-lg">
                         {isSingle ? 'Single Release' : albumTitle}
                       </p>
                       {currentTrack.album?.releaseDate && (
-                        <p className="text-green-200/80 text-sm mt-1">
+                        <p className="text-green-200 text-opacity-80 text-sm mt-1">
                           Released: {new Date(currentTrack.album.releaseDate).getFullYear()}
                         </p>
                       )}
@@ -686,21 +847,33 @@ export default function Game() {
       <div className="text-6xl mb-6">🏆</div>
       <h2 className="text-4xl font-bold text-green-400 mb-6">Game Complete!</h2>
       <p className="text-2xl text-green-300 mb-8">
-        Final Score: {gameData.score} out of {gameData.totalQuestions}
+        Final Score: {gameData.score} points
       </p>
       
-      <div className="bg-gray-900/30 rounded-xl p-6 mb-8">
+      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-8">
         <h3 className="text-xl font-semibold text-green-400 mb-4">Your Performance:</h3>
-        <div className="text-green-200/80">
-          <p>Accuracy: {Math.round((gameData.score / gameData.totalQuestions) * 100)}%</p>
+        <div className="text-green-200 text-opacity-80">
+          {(() => {
+            const correctAnswers = gameData.answers.filter(answer => answer.correct).length;
+            const accuracy = Math.round((correctAnswers / gameData.totalQuestions) * 100);
+            return (
+              <>
+                <p>Correct Answers: {correctAnswers} out of {gameData.totalQuestions}</p>
+                <p>Accuracy: {accuracy}%</p>
+              </>
+            );
+          })()}
           <p className="mt-2">
-            {gameData.score === gameData.totalQuestions ? '🎊 Perfect score! You\'re a music master!' :
-             gameData.score >= gameData.totalQuestions * 0.8 ? '🎉 Excellent! You know your music!' :
-             gameData.score >= gameData.totalQuestions * 0.6 ? '👍 Good job! Keep practicing!' :
-             '🎵 Nice try! Music discovery awaits!'}
+            {(() => {
+              const correctAnswers = gameData.answers.filter(answer => answer.correct).length;
+              if (correctAnswers === gameData.totalQuestions) return '🎊 Perfect score! You\'re a music master!';
+              if (correctAnswers >= gameData.totalQuestions * 0.8) return '🎉 Excellent! You know your music!';
+              if (correctAnswers >= gameData.totalQuestions * 0.6) return '👍 Good job! Keep practicing!';
+              return '🎵 Nice try! Music discovery awaits!';
+            })()} 
           </p>
           {isAuthenticated() && (
-            <div className="mt-4 p-3 bg-green-600/20 border border-green-500/30 rounded-lg">
+            <div className="mt-4 p-3 bg-green-600 bg-opacity-20 border border-green-500 border-opacity-30 rounded-lg">
               <p className="text-green-300 text-sm">
                 ✅ Your score has been saved to the leaderboard!
               </p>
@@ -708,7 +881,7 @@ export default function Game() {
                 <a href="/leaderboard" className="text-green-400 hover:text-green-300 text-sm">
                   View Leaderboard →
                 </a>
-                <span className="mx-2 text-green-200/40">•</span>
+                <span className="mx-2 text-green-200 text-opacity-40">•</span>
                 <a href="/history" className="text-green-400 hover:text-green-300 text-sm">
                   View Your History →
                 </a>
@@ -716,10 +889,28 @@ export default function Game() {
             </div>
           )}
           {!isAuthenticated() && (
-            <div className="mt-4 p-3 bg-yellow-600/20 border border-yellow-500/30 rounded-lg">
-              <p className="text-yellow-300 text-sm">
-                💡 Sign in to save your scores and compete on the leaderboard!
+            <div className="mt-4 p-4 bg-yellow-600 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-lg">⚠️</div>
+                <p className="text-yellow-300 font-medium text-sm">Score Not Saved - Playing as Guest</p>
+              </div>
+              <p className="text-yellow-200 text-opacity-90 text-sm mb-3">
+                Your score of <strong>{gameData.score} points</strong> ({gameData.answers.filter(answer => answer.correct).length}/{gameData.totalQuestions} correct) won't appear on the leaderboard or in your game history.
               </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.location.href = '/login'}
+                  className="bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded text-xs font-medium transition"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => window.location.href = '/register'}
+                  className="border border-yellow-500 text-yellow-300 hover:bg-yellow-500 hover:bg-opacity-10 px-3 py-1 rounded text-xs font-medium transition"
+                >
+                  Register
+                </button>
+              </div>
             </div>
           )}
         </div>

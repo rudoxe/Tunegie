@@ -1,8 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const LeaderboardTable = ({ data, loading, activeTab }) => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleUserClick = (userId) => {
+    navigate(`/user/${userId}`);
+  };
 
   if (loading) {
     return (
@@ -105,9 +111,12 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div>
-                      <div className={`text-sm font-medium text-${theme.text}`}>
+                      <button
+                        onClick={() => handleUserClick(entry.user_id)}
+                        className={`text-sm font-medium text-${theme.primary} hover:text-${theme.primaryHover} hover:underline transition-colors duration-200 cursor-pointer`}
+                      >
                         {entry.username}
-                      </div>
+                      </button>
                       <div className={`text-xs ${getPerformanceColor(entry.performance)}`}>
                         {entry.performance}
                       </div>

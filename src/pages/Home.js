@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import ApiTest from '../components/ApiTest';
 
 export default function Home() {
   const { theme } = useTheme();
@@ -11,7 +10,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
         <h2 className={`text-5xl md:text-6xl font-extrabold mb-6 text-${theme.text} animate-fade-in`}>
-          Guess the Beat, Climb the Charts
+          Tunegie
         </h2>
         <p className={`text-lg md:text-xl text-${theme.textMuted} max-w-2xl mb-8 animate-slide-in`}>
           Welcome to <span className={`font-semibold text-${theme.text}`}>Tunegie</span> - a song guessing game. Listen to short snippets, guess the track, and see how you rank on the leaderboard.
@@ -40,22 +39,6 @@ export default function Home() {
             <h4 className={`text-xl font-bold mb-2 text-${theme.text}`}>Quick Play</h4>
             <p className={`text-${theme.textMuted}`}>Jump right in - no account required, instant fun.</p>
           </div>
-        </div>
-      </section>
-
-      {/* Leaderboard Preview */}
-      <section id="leaderboard" className="py-20 px-6 text-center">
-        <h3 className={`text-3xl font-semibold mb-6 text-${theme.text}`}>Leaderboard Preview</h3>
-        <p className={`text-${theme.textMuted} mb-4`}>Track your high scores once you start playing.</p>
-        <div className={`bg-${theme.surface}/30 border border-${theme.surfaceBorder} rounded-xl p-6 max-w-lg mx-auto text-${theme.textMuted} animate-pulse`}>
-          Coming soon...
-        </div>
-      </section>
-
-      {/* API Test Section (Development Only) */}
-      <section className="py-20 px-6">
-        <div className="max-w-2xl mx-auto">
-          <ApiTest />
         </div>
       </section>
 

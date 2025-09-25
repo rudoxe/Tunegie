@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import tidalApiService from '../services/tidalApi';
+import itunesApiService from '../services/itunesApi';
 
 const TrackPlayer = ({ track, onSnippetEnd }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -9,8 +9,10 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
   const [audioError, setAudioError] = useState(null);
   const [previewInfo, setPreviewInfo] = useState(null);
   const [snippetStart, setSnippetStart] = useState(() => {
-    // For previews, start within first 25 seconds (since previews are ~30s)
-    const maxStart = 20; // Start between 0-20 seconds to allow 5s+ playback
+    // Start at random position within 30-second preview
+    const previewDuration = 30;
+    const snippetDuration = 5;
+    const maxStart = previewDuration - snippetDuration; // 0-25 seconds
     return Math.floor(Math.random() * maxStart);
   });
   
@@ -27,7 +29,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
       try {
         console.log(`🎵 Fetching preview for "${track.title}" by ${track.artists?.[0]?.name}...`);
         
-        const fetchedPreviewInfo = await tidalApiService.getTrackPreviewInfo(track);
+        const fetchedPreviewInfo = await itunesApiService.getTrackPreviewInfo(track);
         
         if (fetchedPreviewInfo.canPreview && fetchedPreviewInfo.previewUrl) {
           setPreviewInfo(fetchedPreviewInfo);
@@ -75,8 +77,9 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
     setHasPlayed(false);
     setPreviewInfo(null);
     
-    // Generate new random snippet start time for previews
-    const maxStart = 20; // Keep within first 20 seconds of 30s preview
+    // Generate new random start position within preview
+    const previewDuration = 30;
+    const maxStart = previewDuration - snippetDuration;
     const randomStart = Math.floor(Math.random() * maxStart);
     setSnippetStart(randomStart);
     
@@ -103,8 +106,6 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
       setIsPlaying(true);
       setHasPlayed(true);
       setCurrentTime(0);
-      
-      console.log(`🎵 Playing preview for "${track.title}" by ${track.artists?.[0]?.name} starting at ${snippetStart}s`);
       
       const audio = audioRef.current;
       
@@ -138,11 +139,9 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
         }
       });
       
-      // Set start time and play
+      // Set start time within preview
       audio.currentTime = snippetStart;
       await audio.play();
-      
-      console.log(`✅ Started preview playback at ${Math.floor(snippetStart/60)}:${(snippetStart%60).toString().padStart(2,'0')}`);
       
       // Track progress with more precise timing
       const startTime = performance.now();
@@ -207,9 +206,11 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
       stopSnippet();
     }
     
-    // Generate new random snippet start time for previews
-    const maxStart = 20; // Keep within first 20 seconds of 30s preview
+    // Shuffle within the 30-second preview
+    const previewDuration = 30;
+    const maxStart = previewDuration - snippetDuration;
     const newRandomStart = Math.floor(Math.random() * maxStart);
+    
     setSnippetStart(newRandomStart);
     setCurrentTime(0);
     
@@ -266,7 +267,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
             })()}
           </p>
           <p className="text-green-200/80 text-xs mt-1">
-            Playing from {Math.floor(snippetStart / 60)}:{(snippetStart % 60).toString().padStart(2, '0')} - {Math.floor((snippetStart + snippetDuration) / 60)}:{((snippetStart + snippetDuration) % 60).toString().padStart(2, '0')}
+            Playing from 0:{snippetStart.toString().padStart(2,'0')} - 0:{(snippetStart + snippetDuration).toString().padStart(2,'0')}
           </p>
         </div>
         
@@ -294,6 +295,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
             </p>
           </div>
         )}
+        
         
         {/* Play Buttons */}
         <div className="flex gap-4 justify-center mb-4">

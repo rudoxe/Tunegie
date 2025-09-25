@@ -162,36 +162,6 @@ export default function Contact() {
           </div>
         </div>
       </div>
-
-      {/* FAQ Section */}
-      <div className="mt-16 animate-fade-in">
-        <h2 className={`text-3xl font-bold text-${theme.accent} text-center mb-8`}>Frequently Asked Questions</h2>
-        <div className="space-y-4 max-w-3xl mx-auto">
-          <div className={`bg-${theme.cardBg} rounded-lg p-6 transition-all duration-300 hover:scale-105 hover:glow border border-${theme.accent}/20`}>
-            <h3 className={`text-lg font-semibold text-${theme.text} mb-2`}>How do I report a bug or technical issue?</h3>
-            <p className={`text-${theme.textMuted}`}>
-              Send us an email at support@tunegie.com with details about the issue, including your browser, 
-              device, and steps to reproduce the problem.
-            </p>
-          </div>
-
-          <div className={`bg-${theme.cardBg} rounded-lg p-6 transition-all duration-300 hover:scale-105 hover:glow border border-${theme.accent}/20`}>
-            <h3 className={`text-lg font-semibold text-${theme.text} mb-2`}>Can I suggest songs to be added to the game?</h3>
-            <p className={`text-${theme.textMuted}`}>
-              Absolutely! We love music suggestions. Send your recommendations to music@tunegie.com 
-              and we'll consider adding them to our library.
-            </p>
-          </div>
-
-          <div className={`bg-${theme.cardBg} rounded-lg p-6 transition-all duration-300 hover:scale-105 hover:glow border border-${theme.accent}/20`}>
-            <h3 className={`text-lg font-semibold text-${theme.text} mb-2`}>Is Tunegie available on mobile devices?</h3>
-            <p className={`text-${theme.textMuted}`}>
-              Yes! Tunegie is fully responsive and works great on all mobile devices through your web browser. 
-              A dedicated mobile app is in development.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

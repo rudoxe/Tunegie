@@ -78,22 +78,6 @@ export default function About() {
           </p>
         </div>
       </section>
-
-      {/* Call to Action */}
-      <section>
-        <div className={`bg-gradient-to-r from-${theme.accent}/20 to-${theme.accent}/10 rounded-xl p-8 border border-${theme.accent}/30 animate-glow-pulse`}>
-          <h2 className={`text-2xl font-bold text-${theme.accent} mb-4`}>Ready to Test Your Music Knowledge?</h2>
-          <p className={`text-${theme.textMuted} mb-6`}>
-            Join thousands of music lovers who are already enjoying the ultimate song guessing experience.
-          </p>
-          <Link
-            to="/game"
-            className={`bg-${theme.accent} text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg hover:bg-${theme.accent}/80 transition-all duration-300 hover:scale-105 hover:glow inline-block animate-float`}
-          >
-            Start Playing Now
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

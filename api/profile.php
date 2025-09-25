@@ -25,7 +25,7 @@ $userId = $userData['user_id'];
 if ($method === 'GET') {
     // Fetch user profile
     try {
-        $stmt = $pdo->prepare('SELECT id, username, email, profile_picture, created_at FROM users WHERE id = ?');
+        $stmt = $pdo->prepare('SELECT id, username, email, profile_picture, created_at, is_private FROM users WHERE id = ?');
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
 
@@ -39,7 +39,8 @@ if ($method === 'GET') {
                 'username' => $user['username'],
                 'email' => $user['email'],
                 'profile_picture' => $user['profile_picture'],
-                'created_at' => $user['created_at']
+                'created_at' => $user['created_at'],
+                'is_private' => (bool)$user['is_private']
             ]
         ]);
     } catch (PDOException $e) {
@@ -47,9 +48,45 @@ if ($method === 'GET') {
     }
 
 } elseif ($method === 'PUT') {
-    // Update user profile (username only)
+    // Update user profile (username and/or privacy)
     $input = json_decode(file_get_contents('php://input'), true);
     $username = isset($input['username']) ? trim($input['username']) : '';
+    $isPrivate = isset($input['is_private']) ? $input['is_private'] : null;
+    
+    // Validate is_private if provided
+    if ($isPrivate !== null && !is_bool($isPrivate)) {
+        sendError('Invalid privacy setting value');
+    }
+
+    // If only updating privacy
+    if ($isPrivate !== null && empty($username)) {
+        try {
+            // Convert to integer for MySQL boolean field (0 or 1)
+            $isPrivateInt = $isPrivate ? 1 : 0;
+            $stmt = $pdo->prepare('UPDATE users SET is_private = ? WHERE id = ?');
+            $stmt->execute([$isPrivateInt, $userId]);
+            
+            // Return updated user info
+            $stmt = $pdo->prepare('SELECT id, username, email, profile_picture, created_at, is_private FROM users WHERE id = ?');
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch();
+
+            sendResponse([
+                'message' => 'Privacy setting updated successfully',
+                'user' => [
+                    'id' => $user['id'],
+                    'username' => $user['username'],
+                    'email' => $user['email'],
+                    'profile_picture' => $user['profile_picture'],
+                    'created_at' => $user['created_at'],
+                    'is_private' => (bool)$user['is_private']
+                ]
+            ]);
+        } catch (PDOException $e) {
+            sendError('Database error: ' . $e->getMessage(), 500);
+        }
+        return;
+    }
 
     if (!$username) {
         sendError('Username is required');
@@ -99,7 +136,7 @@ if ($method === 'GET') {
         $pdo->commit();
 
         // Return updated user info
-        $stmt = $pdo->prepare('SELECT id, username, email, profile_picture, created_at FROM users WHERE id = ?');
+        $stmt = $pdo->prepare('SELECT id, username, email, profile_picture, created_at, is_private FROM users WHERE id = ?');
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
 
@@ -110,7 +147,8 @@ if ($method === 'GET') {
                 'username' => $user['username'],
                 'email' => $user['email'],
                 'profile_picture' => $user['profile_picture'],
-                'created_at' => $user['created_at']
+                'created_at' => $user['created_at'],
+                'is_private' => (bool)$user['is_private']
             ]
         ]);
     } catch (PDOException $e) {

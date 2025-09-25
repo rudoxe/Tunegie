@@ -1,15 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ThemeSelector = () => {
   const { theme, themes, currentTheme, changeTheme } = useTheme();
+  const { token } = useAuth();
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [privacyError, setPrivacyError] = useState('');
+
+  useEffect(() => {
+    // Fetch current privacy setting
+    const fetchPrivacy = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/profile.php', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
+        if (response.ok && !data.error) {
+          setIsPrivate(!!data.user.is_private);
+        }
+      } catch (e) {
+        // ignore for now
+      }
+    };
+    fetchPrivacy();
+  }, [token]);
+
+  const togglePrivacy = async () => {
+    setSavingPrivacy(true);
+    setPrivacyError('');
+    try {
+      const response = await fetch('http://localhost:8000/api/profile.php', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_private: !isPrivate })
+      });
+      const data = await response.json();
+      if (response.ok && !data.error) {
+        setIsPrivate(!!data.user.is_private);
+      } else {
+        setPrivacyError(data.error || 'Failed to update privacy setting');
+      }
+    } catch (e) {
+      setPrivacyError('Network error while updating privacy');
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
 
   return (
     <div className={`bg-${theme.surface} rounded-lg p-6 border border-${theme.surfaceBorder} transition-all duration-300`}>
-      <h3 className={`text-xl font-semibold text-${theme.text} mb-4`}>Choose Your Style</h3>
+      <h3 className={`text-xl font-semibold text-${theme.text} mb-1`}>Choose Your Style</h3>
       <p className={`text-${theme.textMuted} text-sm mb-6`}>
         Select a theme that matches your vibe
       </p>
+
+      {/* Privacy Toggle */}
+      <div className={`mb-6 p-4 bg-${theme.primary}/10 border border-${theme.primary}/20 rounded-lg flex items-center justify-between`}>
+        <div>
+          <p className={`text-${theme.text} font-medium`}>Private Profile</p>
+          <p className={`text-${theme.textMuted} text-sm`}>When enabled, other users cannot view your stats</p>
+        </div>
+        <button onClick={togglePrivacy} disabled={savingPrivacy}
+          className={`px-4 py-2 rounded-md text-white ${isPrivate ? `bg-red-600 hover:bg-red-700` : `bg-${theme.primary} hover:bg-${theme.primaryHover}`} transition-colors duration-200`}>
+          {savingPrivacy ? 'Saving...' : isPrivate ? 'Disable' : 'Enable'}
+        </button>
+      </div>
+      {privacyError && <p className="text-red-400 text-sm mb-4">{privacyError}</p>}
       
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {Object.entries(themes).map(([themeKey, themeData]) => (
