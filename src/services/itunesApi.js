@@ -1,10 +1,12 @@
 class iTunesApiService {
   constructor() {
-    this.baseUrl = 'https://itunes.apple.com/search';
+    // Use PHP proxy to avoid CORS issues
+    this.baseUrl = 'http://localhost:8000/api/itunes_proxy.php';
+    this.testUrl = 'http://localhost:8000/api/itunes_test.php';
     this.countryCode = 'US';
   }
 
-  // Make API requests to iTunes
+  // Make API requests to iTunes via PHP proxy
   async makeApiRequest(params) {
     const url = new URL(this.baseUrl);
     
@@ -24,15 +26,23 @@ class iTunesApiService {
       url.searchParams.append(key, finalParams[key]);
     });
 
-    console.log(`🎵 iTunes API request: ${url.toString()}`);
+    console.log(`🎵 iTunes API request via PHP proxy: ${url.toString()}`);
 
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`iTunes API error: ${response.status}`);
+        throw new Error(`iTunes API proxy error: ${response.status}`);
       }
       
-      const data = await response.json();
+      const result = await response.json();
+      
+      // Check if proxy returned success
+      if (!result.success) {
+        throw new Error(result.message || 'API request failed');
+      }
+      
+      // Extract the actual iTunes data
+      const data = result.data;
       console.log(`📊 iTunes API returned ${data.resultCount} results`);
       
       return data;
@@ -64,48 +74,96 @@ class iTunesApiService {
     console.log(`🎤 Getting tracks for artist: ${artistName}`);
     
     try {
-      // Search specifically for the artist
-      const data = await this.makeApiRequest({
+      // Step 1: Search for the artist to get their ID
+      const artistSearch = await this.makeApiRequest({
         term: artistName,
-        limit: 100 // Get more results to filter from
+        media: 'music',
+        entity: 'musicArtist',
+        attribute: 'artistTerm',
+        limit: 10
       });
 
-      if (!data.results || data.results.length === 0) {
-        console.warn(`❌ No results found for artist: ${artistName}`);
+      if (!artistSearch.results?.length) {
+        console.warn(`❌ No artist found for: ${artistName}`);
         return [];
       }
 
-      // Filter for tracks that match the artist and have previews
-      const artistTracks = data.results.filter(track => {
-        if (!track.previewUrl) return false;
-        
-        const normalizedRequestedArtist = this.normalizeString(artistName);
-        const normalizedTrackArtist = this.normalizeString(track.artistName);
-        
-        // Check for exact match or partial match
-        return normalizedTrackArtist.includes(normalizedRequestedArtist) || 
-               normalizedRequestedArtist.includes(normalizedTrackArtist) ||
-               this.artistNamesMatch(normalizedRequestedArtist, normalizedTrackArtist);
-      });
+      // Find the best artist match (more flexible matching)
+      const artist = artistSearch.results.find(a => 
+        this.normalizeString(a.artistName).includes(this.normalizeString(artistName)) ||
+        this.normalizeString(artistName).includes(this.normalizeString(a.artistName))
+      );
 
-      console.log(`🎵 Found ${artistTracks.length} matching tracks for ${artistName}`);
-      
-      if (artistTracks.length === 0) {
-        console.warn(`❌ No tracks with previews found for artist: ${artistName}`);
-        console.log('Try checking the spelling or using a different artist name');
+      if (!artist) {
+        console.warn(`❌ No matching artist found for: ${artistName}`);
         return [];
       }
 
-      // Shuffle and limit results
-      const shuffled = artistTracks.sort(() => 0.5 - Math.random());
-      const limitedTracks = shuffled.slice(0, count);
-      
-      console.log(`✅ Returning ${limitedTracks.length} tracks:`);
-      limitedTracks.forEach(track => {
-        console.log(`  - "${track.trackName}" by ${track.artistName}`);
+      console.log(`✅ Found artist: ${artist.artistName} (ID: ${artist.artistId})`);
+
+      // Step 2: Get all tracks by artist ID using lookup
+      const tracksResponse = await this.makeApiRequest({
+        artistId: artist.artistId,
+        entity: 'song',
+        lookup: 'true',
+        limit: 200
       });
 
-      return limitedTracks.map(track => this.formatTrack(track));
+      if (!tracksResponse.results?.length) {
+        console.warn(`❌ No tracks found for artist ID: ${artist.artistId}`);
+        return [];
+      }
+
+      // Get all tracks with previews
+      const tracks = tracksResponse.results.filter(item => 
+        item.wrapperType === 'track' && 
+        item.previewUrl &&
+        item.kind === 'song'
+      );
+
+      console.log(`📦 Found ${tracks.length} tracks with previews`);
+
+      if (tracks.length === 0) {
+        // Fallback: Try direct search if lookup returns no results
+        const directSearch = await this.makeApiRequest({
+          term: `${artistName} song`,
+          attribute: 'artistTerm',
+          entity: 'song',
+          limit: 200
+        });
+
+        if (directSearch.results?.length) {
+          const matchingTracks = directSearch.results.filter(track => 
+            track.previewUrl &&
+            track.artistId === artist.artistId
+          );
+          tracks.push(...matchingTracks);
+        }
+      }
+
+      // Sort by popularity (using collection ID as a rough indicator) and release date
+      const sortedTracks = tracks.sort((a, b) => {
+        // First by collection ID (newer albums usually have higher IDs)
+        const collectionDiff = (b.collectionId || 0) - (a.collectionId || 0);
+        if (collectionDiff !== 0) return collectionDiff;
+        
+        // Then by release date
+        const aDate = new Date(a.releaseDate || 0);
+        const bDate = new Date(b.releaseDate || 0);
+        return bDate - aDate;
+      });
+
+      // Get top tracks with some randomization
+      const selectedTracks = [...sortedTracks]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, count);
+
+      console.log(`✅ Returning ${selectedTracks.length} tracks for ${artistName}:`);
+      selectedTracks.forEach(track => {
+        console.log(`  - "${track.trackName}" from "${track.collectionName}"`);
+      });
+      
+      return selectedTracks.map(track => this.formatTrack(track));
       
     } catch (error) {
       console.error(`❌ Error getting tracks for ${artistName}:`, error);
@@ -260,19 +318,21 @@ class iTunesApiService {
   // Test API connection
   async testConnection() {
     try {
-      console.log('🧪 Testing iTunes API connection...');
+      console.log('🧪 Testing iTunes API connection via PHP proxy...');
       
-      const testData = await this.makeApiRequest({
-        term: 'test',
-        limit: 1
-      });
-
-      const isConnected = testData && testData.results;
+      const response = await fetch(this.testUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Test endpoint error: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      const isConnected = result.success && result.connected;
       
       if (isConnected) {
-        console.log('✅ iTunes API connection successful');
+        console.log('✅ iTunes API connection successful via PHP proxy');
       } else {
-        console.log('❌ iTunes API connection failed - no results returned');
+        console.log('❌ iTunes API connection failed:', result.message);
       }
       
       return isConnected;
