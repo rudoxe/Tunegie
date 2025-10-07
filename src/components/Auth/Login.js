@@ -155,7 +155,7 @@ const Login = ({ onSuccess, onSwitchToRegister }) => {
                 </p>
                 
                 <p className="text-blue-200 text-xs mt-2">
-                  💡 Alternative: <a href="http://localhost:8000/api/dev-reset-links.php" target="_blank" className="underline text-blue-400">View all reset links</a>
+                  💡 Alternative: <a href="http://localhost:8000/api/dev-reset-links.php" target="_blank" rel="noreferrer" className="underline text-blue-400">View all reset links</a>
                 </p>
               </div>
             </div>

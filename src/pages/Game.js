@@ -24,7 +24,6 @@ export default function Game() {
   const [userGuess, setUserGuess] = useState('');
   const [showAnswer, setShowAnswer] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  const [apiConnected, setApiConnected] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [cheatMode, setCheatMode] = useState(false);
 
@@ -43,7 +42,6 @@ export default function Game() {
       
       // Test iTunes API connection
       const connected = await itunesApiService.testConnection();
-      setApiConnected(connected);
 
       if (!connected) {
         throw new Error('Unable to connect to iTunes API. Please check your internet connection.');
@@ -302,7 +300,6 @@ export default function Game() {
   // Helper function to calculate overlap percentage
   const calculateOverlap = (guess, target) => {
     const guessWords = guess.split(' ');
-    const targetWords = target.split(' ');
     
     let matchedChars = 0;
     let totalGuessChars = guess.replace(/\s/g, '').length;
