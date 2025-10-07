@@ -15,8 +15,10 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // API base URL for PHP development server
-  const API_BASE = 'http://localhost:8000/api';
+  // API base URL - use current domain in production, localhost in development
+  const API_BASE = process.env.NODE_ENV === 'production' 
+    ? '/api' 
+    : 'http://localhost:8000/api';
 
   useEffect(() => {
     // Check for stored token on app load

@@ -91,7 +91,8 @@ const Login = ({ onSuccess, onSwitchToRegister }) => {
     setErrors({});
 
     try {
-      const response = await fetch('http://localhost:8000/api/forgot-password.php', {
+      const apiBase = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api';
+      const response = await fetch(`${apiBase}/forgot-password.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,9 +155,11 @@ const Login = ({ onSuccess, onSwitchToRegister }) => {
                   ⏰ This link expires in {data.expires_in || '1 hour'}
                 </p>
                 
-                <p className="text-blue-200 text-xs mt-2">
-                  💡 Alternative: <a href="http://localhost:8000/api/dev-reset-links.php" target="_blank" rel="noreferrer" className="underline text-blue-400">View all reset links</a>
-                </p>
+                {process.env.NODE_ENV === 'development' && (
+                  <p className="text-blue-200 text-xs mt-2">
+                    💡 Alternative: <a href="http://localhost:8000/api/dev-reset-links.php" target="_blank" rel="noreferrer" className="underline text-blue-400">View all reset links</a>
+                  </p>
+                )}
               </div>
             </div>
           );
