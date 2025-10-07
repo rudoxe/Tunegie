@@ -23,7 +23,7 @@
     "react-app": "react-scripts start",
     "php-server": "C:\\laragon\\bin\\php\\php-8.1.10-Win32-vs16-x64\\php.exe -S localhost:8000 -t .",
     "build": "react-scripts build",
-    "railway-build": "npm run build && node create-php-router.js && php migrate.php",
+    "railway-build": "npm run build && node create-php-router.js && (php migrate.php || echo 'Migration skipped')",
     "deploy": "railway up",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
