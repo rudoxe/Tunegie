@@ -22,10 +22,14 @@ const Profile = () => {
   const [usernameHistory, setUsernameHistory] = useState([]);
   const [showUsernameHistory, setShowUsernameHistory] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [streaks, setStreaks] = useState({ login: {}, play: {} });
+  const [achievements, setAchievements] = useState({ earned_count: 0, total_available: 0, total_points: 0, completion_percentage: 0, recent: [] });
+  const [streakLoading, setStreakLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchProfileData();
     }
   }, [user, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -51,6 +55,57 @@ const Profile = () => {
     } catch (error) {
       setErrors({ fetch: 'Failed to load profile data' });
     }
+  };
+
+  const fetchProfileData = async () => {
+    setStreakLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/my-profile.php', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && !data.error) {
+        setStreaks(data.streaks || { login: {}, play: {} });
+        setAchievements(data.achievements || { earned_count: 0, total_available: 0, total_points: 0, completion_percentage: 0, recent: [] });
+      } else {
+        console.error('Failed to fetch profile data:', data.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile data:', error);
+    } finally {
+      setStreakLoading(false);
+    }
+  };
+
+  const getAchievementColor = (color) => {
+    const colors = {
+      'bronze': 'from-amber-700 to-amber-800',
+      'silver': 'from-gray-300 to-gray-500', 
+      'gold': 'from-yellow-400 to-yellow-600',
+      'purple': 'from-purple-500 to-purple-700',
+      'blue': 'from-blue-500 to-blue-700',
+      'green': 'from-green-500 to-green-700',
+      'red': 'from-red-500 to-red-700'
+    };
+    return colors[color] || colors['bronze'];
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
   };
 
   const handleInputChange = (e) => {
@@ -274,6 +329,134 @@ const Profile = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Streaks Section */}
+        <div className={`bg-${theme.surface} rounded-lg p-6 border border-${theme.surfaceBorder} mb-6 transition-all duration-300 hover:${theme.glow}/20`}>
+          <h3 className={`text-xl font-semibold text-${theme.text} mb-4 flex items-center`}>
+            🔥 Your Streaks
+            {streakLoading && (
+              <div className={`ml-2 w-4 h-4 border-2 border-${theme.primary} border-t-transparent rounded-full animate-spin`}></div>
+            )}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Login Streak */}
+            <div className={`bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/30 rounded-lg p-4 text-center transition-all duration-300 hover:scale-105`}>
+              <div className="text-2xl mb-2">📅</div>
+              <div className={`text-${theme.text} font-bold mb-1`}>Login Streak</div>
+              <div className={`text-2xl font-bold text-${theme.text} mb-1`}>
+                {streaks.login?.current_streak || 0}
+              </div>
+              <div className={`text-${theme.textMuted} text-sm`}>
+                Best: {streaks.login?.longest_streak || 0} days
+              </div>
+              <div className={`text-${theme.textMuted} text-xs mt-1`}>
+                Last: {formatDate(streaks.login?.last_activity_date)}
+              </div>
+            </div>
+            
+            {/* Play Streak */}
+            <div className={`bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 rounded-lg p-4 text-center transition-all duration-300 hover:scale-105`}>
+              <div className="text-2xl mb-2">🎮</div>
+              <div className={`text-${theme.text} font-bold mb-1`}>Play Streak</div>
+              <div className={`text-2xl font-bold text-${theme.text} mb-1`}>
+                {streaks.play?.current_streak || 0}
+              </div>
+              <div className={`text-${theme.textMuted} text-sm`}>
+                Best: {streaks.play?.longest_streak || 0} days
+              </div>
+              <div className={`text-${theme.textMuted} text-xs mt-1`}>
+                Last: {formatDate(streaks.play?.last_activity_date)}
+              </div>
+              {streaks.play && !streaks.play.played_today && streaks.play.current_streak > 0 && (
+                <div className="text-orange-400 text-xs mt-1 animate-pulse">
+                  ⚠️ Play today to keep streak!
+                </div>
+              )}
+              {streaks.play && streaks.play.played_today && (
+                <div className="text-green-400 text-xs mt-1">
+                  ✅ Streak maintained today!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Achievements Section */}
+        <div className={`bg-${theme.surface} rounded-lg p-6 border border-${theme.surfaceBorder} mb-6 transition-all duration-300 hover:${theme.glow}/20`}>
+          <h3 className={`text-xl font-semibold text-${theme.text} mb-4 flex items-center`}>
+            🏆 Achievements
+          </h3>
+          
+          {/* Achievement Summary */}
+          <div className={`bg-gradient-to-r from-${theme.primary}/10 to-${theme.primaryHover}/10 border border-${theme.primary}/20 rounded-lg p-4 mb-4`}>
+            <div className="flex justify-between items-center">
+              <div>
+                <div className={`text-${theme.text} font-bold text-lg`}>
+                  {achievements.earned_count}/{achievements.total_available} Unlocked
+                </div>
+                <div className={`text-${theme.textMuted} text-sm`}>
+                  {achievements.completion_percentage}% Complete
+                </div>
+              </div>
+              <div className={`text-right`}>
+                <div className={`text-yellow-400 font-bold text-xl`}>
+                  {achievements.total_points} pts
+                </div>
+                <div className={`text-${theme.textMuted} text-xs`}>
+                  Total Points
+                </div>
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className={`mt-3 bg-gray-700 rounded-full h-2`}>
+              <div 
+                className={`bg-gradient-to-r from-${theme.primary} to-${theme.primaryHover} h-2 rounded-full transition-all duration-500`}
+                style={{ width: `${achievements.completion_percentage}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          {/* Recent Achievements */}
+          {achievements.recent && achievements.recent.length > 0 && (
+            <div>
+              <h4 className={`text-${theme.textSecondary} font-medium mb-3`}>Recent Achievements:</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {achievements.recent.map((achievement, index) => (
+                  <div 
+                    key={index}
+                    className={`bg-gradient-to-br ${getAchievementColor(achievement.color)} p-3 rounded-lg border border-white/20 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg`}
+                  >
+                    <div className="text-2xl mb-1">
+                      {achievement.icon || '🏆'}
+                    </div>
+                    <div className="text-white font-bold text-sm mb-1">
+                      {achievement.name}
+                    </div>
+                    <div className="text-white/80 text-xs mb-2">
+                      {achievement.description}
+                    </div>
+                    <div className="text-yellow-300 font-bold text-xs">
+                      +{achievement.points} pts
+                    </div>
+                    <div className="text-white/60 text-xs mt-1">
+                      {formatDate(achievement.earned_at)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {achievements.recent && achievements.recent.length === 0 && (
+            <div className={`text-center py-8 text-${theme.textMuted}`}>
+              <div className="text-4xl mb-2">🎯</div>
+              <p>No achievements yet!</p>
+              <p className="text-sm mt-1">Start playing to unlock your first achievement.</p>
+            </div>
+          )}
         </div>
 
         {/* Theme Selector Section */}

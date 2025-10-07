@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/cors.php';
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/AchievementSystem.php';
 
 $pdo = getDbConnection();
 
@@ -28,6 +29,15 @@ try {
     }
 
     $token = generateJWT($user['id'], $user['email']);
+    
+    // Initialize achievement system and update login streak
+    $achievementSystem = new AchievementSystem($pdo);
+    
+    // Update login streak (this will create a record if none exists)
+    $streakResult = $achievementSystem->updateDailyStreak($user['id'], 'login');
+    
+    // Also check if user has played any games today, if not, initialize play streak
+    $playStreakResult = $achievementSystem->updateDailyStreak($user['id'], 'play_game');
 
     sendResponse([
         'message' => 'Login successful',
@@ -37,6 +47,16 @@ try {
             'email' => $user['email'],
             'username' => $user['username'],
             'profile_picture' => $user['profile_picture']
+        ],
+        'streak_info' => [
+            'login_streak' => [
+                'current_streak' => $streakResult['current_streak'],
+                'longest_streak' => $streakResult['longest_streak']
+            ],
+            'play_streak' => [
+                'current_streak' => $playStreakResult['current_streak'],
+                'longest_streak' => $playStreakResult['longest_streak']
+            ]
         ]
     ]);
 } catch (PDOException $e) {

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/cors.php';
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/AchievementSystem.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -53,6 +54,7 @@ if (empty($gameMode)) {
 
 try {
     $pdo = getDbConnection();
+    $achievementSystem = new AchievementSystem($pdo);
     
     // Start transaction
     $pdo->beginTransaction();
@@ -122,11 +124,33 @@ try {
     
     $pdo->commit();
     
+    // Update daily streak
+    $streakResult = $achievementSystem->updateDailyStreak($userId, 'play_game');
+    
+    // Prepare game data for achievement checking
+    $gameData = [
+        'score' => $score,
+        'accuracy' => $accuracy,
+        'total_rounds' => $totalRounds,
+        'correct_answers' => $correctAnswers,
+        'current_streak' => $streakResult['current_streak']
+    ];
+    
+    // Check and award achievements
+    $newAchievements = $achievementSystem->checkAndAwardAchievements($userId, $gameData);
+    
     sendResponse([
         'message' => 'Score saved successfully',
         'session_id' => $sessionId,
         'leaderboard_position' => getLeaderboardPosition($pdo, $userId, $gameMode),
-        'personal_best' => isPersonalBest($pdo, $userId, $score)
+        'personal_best' => isPersonalBest($pdo, $userId, $score),
+        'streak_info' => [
+            'current_streak' => $streakResult['current_streak'],
+            'longest_streak' => $streakResult['longest_streak'],
+            'streak_continued' => $streakResult['streak_continued']
+        ],
+        'new_achievements' => $newAchievements,
+        'achievement_count' => count($newAchievements)
     ]);
     
 } catch (PDOException $e) {

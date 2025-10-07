@@ -3,17 +3,29 @@
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
-// Database configuration for Laragon
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'tunegie_db');
-define('DB_USER', 'root');
-define('DB_PASS', ''); // Laragon default is empty password
+// Database configuration - Railway environment variables or local fallback
+define('DB_HOST', $_ENV['MYSQLHOST'] ?? 'localhost');
+define('DB_NAME', $_ENV['MYSQLDATABASE'] ?? 'tunegie_db');
+define('DB_USER', $_ENV['MYSQLUSER'] ?? 'root');
+define('DB_PASS', $_ENV['MYSQLPASSWORD'] ?? '');
+define('DB_PORT', $_ENV['MYSQLPORT'] ?? '3306');
 
-// JWT Secret (change this to a random string in production)
-define('JWT_SECRET', 'your-secret-key-change-this-in-production');
+// JWT Secret - use Railway environment variable or fallback
+define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'your-secret-key-change-this-in-production');
 
-// CORS headers for React development
-header('Access-Control-Allow-Origin: http://localhost:3000');
+// CORS headers - allow Railway domain and localhost
+$allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:8000', 
+    $_ENV['RAILWAY_STATIC_URL'] ?? '',
+    $_ENV['FRONTEND_URL'] ?? ''
+];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, array_filter($allowedOrigins))) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
 header('Access-Control-Allow-Credentials: true');
@@ -29,7 +41,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS'
 function getDbConnection() {
     try {
         $pdo = new PDO(
-            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+            "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4",
             DB_USER,
             DB_PASS,
             [

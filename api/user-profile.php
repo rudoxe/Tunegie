@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/cors.php';
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/AchievementSystem.php';
 
 $pdo = getDbConnection();
 
@@ -17,6 +18,8 @@ if (!$userId) {
 }
 
 try {
+    $achievementSystem = new AchievementSystem($pdo);
+    
     // Get user basic info
     $stmt = $pdo->prepare('
         SELECT id, username, profile_picture, created_at, is_private 
@@ -83,9 +86,69 @@ try {
     $stmt->execute([$userId]);
     $leaderboardPosition = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Get comprehensive streak information
+    $streakInfo = $achievementSystem->getUserStreakInfo($userId, 'play_game');
+    
+    // Get user's earned achievements with details
+    $stmt = $pdo->prepare('
+        SELECT 
+            a.id,
+            a.name,
+            a.description,
+            a.icon,
+            a.color,
+            a.type,
+            a.points,
+            ua.earned_at
+        FROM user_achievements ua
+        JOIN achievements a ON ua.achievement_id = a.id
+        WHERE ua.user_id = ?
+        ORDER BY ua.earned_at DESC
+    ');
+    $stmt->execute([$userId]);
+    $userAchievements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get total achievement stats
+    $stmt = $pdo->prepare('
+        SELECT 
+            COUNT(ua.id) as earned_count,
+            SUM(a.points) as total_points,
+            (SELECT COUNT(*) FROM achievements) as total_available
+        FROM user_achievements ua
+        JOIN achievements a ON ua.achievement_id = a.id
+        WHERE ua.user_id = ?
+    ');
+    $stmt->execute([$userId]);
+    $achievementStats = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Get recent achievements (last 5)
+    $recentAchievements = array_slice($userAchievements, 0, 5);
+    
+    // Calculate achievement completion percentage
+    $completionPercentage = $achievementStats['total_available'] > 0 ? 
+        round(($achievementStats['earned_count'] / $achievementStats['total_available']) * 100, 1) : 0;
+
     sendResponse([
         'user' => $user,
         'stats' => $stats,
+        'streak_info' => [
+            'current_streak' => $streakInfo['current_streak'],
+            'longest_streak' => $streakInfo['longest_streak'],
+            'last_activity_date' => $streakInfo['last_activity_date'],
+            'played_today' => $streakInfo['played_today'],
+            'status' => $streakInfo['current_streak'] > 0 ? 
+                ($streakInfo['played_today'] ? 'active' : 'at_risk') : 'inactive'
+        ],
+        'achievements' => [
+            'earned' => $userAchievements,
+            'recent' => $recentAchievements,
+            'stats' => [
+                'earned_count' => (int)$achievementStats['earned_count'],
+                'total_available' => (int)$achievementStats['total_available'],
+                'total_points' => (int)($achievementStats['total_points'] ?? 0),
+                'completion_percentage' => $completionPercentage
+            ]
+        ],
         'recent_games' => $recentGames,
         'leaderboard_position' => $leaderboardPosition ? $leaderboardPosition['position'] : null
     ]);
