@@ -26,7 +26,10 @@ if (strpos($path, '/api/') === 0) {
     
     // Route to specific API endpoints - use absolute path from project root
     // Handle both with and without .php extension
-    $cleanPath = rtrim($apiPath, '.php');
+    $cleanPath = $apiPath;
+    if (substr($apiPath, -4) === '.php') {
+        $cleanPath = substr($apiPath, 0, -4);
+    }
     $apiFile = null;
     
     switch ($cleanPath) {
