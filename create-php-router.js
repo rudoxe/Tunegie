@@ -24,61 +24,75 @@ if (strpos($path, '/api/') === 0) {
         exit;
     }
     
-    // Route to specific API endpoints
+    // Route to specific API endpoints - use absolute path from project root
+    $apiFile = null;
     switch ($apiPath) {
         case '/login':
         case '/login.php':
-            include '../api/login.php';
+            $apiFile = __DIR__ . '/../api/login.php';
             break;
         case '/register':
         case '/register.php':
-            include '../api/register.php';
+            $apiFile = __DIR__ . '/../api/register.php';
             break;
         case '/forgot-password':
         case '/forgot-password.php':
-            include '../api/forgot-password.php';
+            $apiFile = __DIR__ . '/../api/forgot-password.php';
             break;
         case '/game/start':
         case '/game/start.php':
-            include '../api/game/start.php';
+            $apiFile = __DIR__ . '/../api/game/start.php';
             break;
         case '/game/guess':
         case '/game/guess.php':
-            include '../api/game/guess.php';
+            $apiFile = __DIR__ . '/../api/game/guess.php';
             break;
         case '/game/scores':
         case '/game/scores.php':
-            include '../api/game/scores.php';
+            $apiFile = __DIR__ . '/../api/game/scores.php';
             break;
         case '/profile':
         case '/profile.php':
-            include '../api/profile.php';
+            $apiFile = __DIR__ . '/../api/profile.php';
             break;
         case '/my-profile':
         case '/my-profile.php':
-            include '../api/my-profile.php';
+            $apiFile = __DIR__ . '/../api/my-profile.php';
             break;
         case '/user-profile':
         case '/user-profile.php':
-            include '../api/user-profile.php';
+            $apiFile = __DIR__ . '/../api/user-profile.php';
             break;
         case '/search-users':
         case '/search-users.php':
-            include '../api/search-users.php';
+            $apiFile = __DIR__ . '/../api/search-users.php';
             break;
         case '/itunes_proxy':
         case '/itunes_proxy.php':
-            include '../api/itunes_proxy.php';
+            $apiFile = __DIR__ . '/../api/itunes_proxy.php';
             break;
         case '/itunes_test':
         case '/itunes_test.php':
-            include '../api/itunes_test.php';
+            $apiFile = __DIR__ . '/../api/itunes_test.php';
             break;
         default:
             http_response_code(404);
             header('Content-Type: application/json');
             echo json_encode(['error' => 'API endpoint not found', 'requested_path' => $apiPath]);
             exit;
+    }
+    
+    // Check if API file exists and include it
+    if ($apiFile && file_exists($apiFile)) {
+        include $apiFile;
+    } else {
+        http_response_code(404);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'error' => 'API file not found', 
+            'requested_path' => $apiPath,
+            'expected_file' => $apiFile
+        ]);
     }
     exit;
 }
