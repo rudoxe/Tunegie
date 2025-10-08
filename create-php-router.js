@@ -25,60 +25,51 @@ if (strpos($path, '/api/') === 0) {
     }
     
     // Route to specific API endpoints - use absolute path from project root
+    // Handle both with and without .php extension
+    $cleanPath = rtrim($apiPath, '.php');
     $apiFile = null;
-    switch ($apiPath) {
+    
+    switch ($cleanPath) {
         case '/login':
-        case '/login.php':
             $apiFile = __DIR__ . '/../api/login.php';
             break;
         case '/register':
-        case '/register.php':
             $apiFile = __DIR__ . '/../api/register.php';
             break;
         case '/forgot-password':
-        case '/forgot-password.php':
             $apiFile = __DIR__ . '/../api/forgot-password.php';
             break;
         case '/game/start':
-        case '/game/start.php':
             $apiFile = __DIR__ . '/../api/game/start.php';
             break;
         case '/game/guess':
-        case '/game/guess.php':
             $apiFile = __DIR__ . '/../api/game/guess.php';
             break;
         case '/game/scores':
-        case '/game/scores.php':
             $apiFile = __DIR__ . '/../api/game/scores.php';
             break;
         case '/profile':
-        case '/profile.php':
             $apiFile = __DIR__ . '/../api/profile.php';
             break;
         case '/my-profile':
-        case '/my-profile.php':
             $apiFile = __DIR__ . '/../api/my-profile.php';
             break;
         case '/user-profile':
-        case '/user-profile.php':
             $apiFile = __DIR__ . '/../api/user-profile.php';
             break;
         case '/search-users':
-        case '/search-users.php':
             $apiFile = __DIR__ . '/../api/search-users.php';
             break;
         case '/itunes_proxy':
-        case '/itunes_proxy.php':
             $apiFile = __DIR__ . '/../api/itunes_proxy.php';
             break;
         case '/itunes_test':
-        case '/itunes_test.php':
             $apiFile = __DIR__ . '/../api/itunes_test.php';
             break;
         default:
             http_response_code(404);
             header('Content-Type: application/json');
-            echo json_encode(['error' => 'API endpoint not found', 'requested_path' => $apiPath]);
+            echo json_encode(['error' => 'API endpoint not found', 'requested_path' => $apiPath, 'cleaned_path' => $cleanPath]);
             exit;
     }
     
