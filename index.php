@@ -21,7 +21,7 @@ if ($path === '/' || $path === '/health') {
 // API routes
 if (strpos($path, '/api/') === 0) {
     $apiPath = substr($path, 5); // Remove '/api/' prefix
-    $phpFile = __DIR__ . '/api/' . $apiPath;
+    $phpFile = __DIR__ . '/backend/php/api/' . $apiPath;
     
     // Add .php extension if not present
     if (!pathinfo($apiPath, PATHINFO_EXTENSION)) {
@@ -35,8 +35,8 @@ if (strpos($path, '/api/') === 0) {
 }
 
 // Serve static files for React build
-if (file_exists(__DIR__ . '/build' . $path)) {
-    $file = __DIR__ . '/build' . $path;
+if (file_exists(__DIR__ . '/frontend/build' . $path)) {
+    $file = __DIR__ . '/frontend/build' . $path;
     $mimeType = mime_content_type($file);
     header('Content-Type: ' . $mimeType);
     readfile($file);
@@ -44,9 +44,9 @@ if (file_exists(__DIR__ . '/build' . $path)) {
 }
 
 // Serve React app for all other routes (SPA routing)
-if (file_exists(__DIR__ . '/build/index.html')) {
+if (file_exists(__DIR__ . '/frontend/build/index.html')) {
     header('Content-Type: text/html');
-    readfile(__DIR__ . '/build/index.html');
+    readfile(__DIR__ . '/frontend/build/index.html');
     exit;
 }
 
