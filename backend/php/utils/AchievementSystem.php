@@ -106,36 +106,31 @@ class AchievementSystem {
      * Check if achievement condition is met
      */
     private function checkAchievementCondition($userId, $achievement, $userStats, $gameData) {
-        $type = $achievement['type'];
-        $thresholdType = $achievement['threshold_type'];
-        $thresholdValue = $achievement['threshold_value'];
+        $conditionType = $achievement['condition_type'];
+        $conditionValue = $achievement['condition_value'];
         
-        switch ($type) {
-            case 'score':
-                if ($thresholdType === 'single_game') {
-                    return isset($gameData['score']) && $gameData['score'] >= $thresholdValue;
-                } elseif ($thresholdType === 'total') {
-                    return ($userStats['total_score_from_leaderboard'] ?? 0) >= $thresholdValue;
-                }
-                break;
+        switch ($conditionType) {
+            case 'best_score':
+                return isset($gameData['score']) && $gameData['score'] >= $conditionValue;
                 
-            case 'games':
-                if ($thresholdType === 'total') {
-                    return ($userStats['total_games_from_leaderboard'] ?? 0) >= $thresholdValue;
-                }
-                break;
+            case 'total_score':
+                return ($userStats['total_score_from_leaderboard'] ?? 0) >= $conditionValue;
+                
+            case 'total_games':
+                return ($userStats['total_games_from_leaderboard'] ?? 0) >= $conditionValue;
                 
             case 'accuracy':
-                if ($thresholdType === 'single_game') {
-                    return isset($gameData['accuracy']) && $gameData['accuracy'] >= $thresholdValue;
-                }
-                break;
+                return isset($gameData['accuracy']) && $gameData['accuracy'] >= $conditionValue;
                 
-            case 'streak':
-                return ($userStats['current_play_streak'] ?? 0) >= $thresholdValue;
+            case 'streak_days':
+                return ($userStats['current_play_streak'] ?? 0) >= $conditionValue;
                 
-            case 'rounds':
-                return ($userStats['total_rounds_from_leaderboard'] ?? 0) >= $thresholdValue;
+            case 'total_rounds':
+                return ($userStats['total_rounds_from_leaderboard'] ?? 0) >= $conditionValue;
+                
+            case 'consecutive_wins':
+                // This would need additional tracking - for now, return false
+                return false;
         }
         
         return false;
@@ -240,8 +235,8 @@ class AchievementSystem {
                 LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
                 ORDER BY 
                     CASE WHEN ua.id IS NOT NULL THEN 1 ELSE 0 END,
-                    a.type, 
-                    a.threshold_value ASC
+                    a.category, 
+                    a.condition_value ASC
             ");
             $stmt->execute([$userId]);
             $achievements = $stmt->fetchAll();
@@ -252,9 +247,9 @@ class AchievementSystem {
             foreach ($achievements as &$achievement) {
                 if (!$achievement['is_completed']) {
                     $achievement['progress'] = $this->calculateAchievementProgress($achievement, $userStats);
-                    $achievement['progress_percentage'] = min(100, ($achievement['progress'] / $achievement['threshold_value']) * 100);
+                    $achievement['progress_percentage'] = min(100, ($achievement['progress'] / $achievement['condition_value']) * 100);
                 } else {
-                    $achievement['progress'] = $achievement['threshold_value'];
+                    $achievement['progress'] = $achievement['condition_value'];
                     $achievement['progress_percentage'] = 100;
                 }
             }
@@ -270,32 +265,30 @@ class AchievementSystem {
      * Calculate current progress towards an achievement
      */
     private function calculateAchievementProgress($achievement, $userStats) {
-        $type = $achievement['type'];
-        $thresholdType = $achievement['threshold_type'];
+        $conditionType = $achievement['condition_type'];
         
-        switch ($type) {
-            case 'games':
-                if ($thresholdType === 'total') {
-                    return $userStats['total_games_from_leaderboard'] ?? 0;
-                }
-                break;
+        switch ($conditionType) {
+            case 'total_games':
+                return $userStats['total_games_from_leaderboard'] ?? 0;
                 
-            case 'score':
-                if ($thresholdType === 'total') {
-                    return $userStats['total_score_from_leaderboard'] ?? 0;
-                } elseif ($thresholdType === 'single_game') {
-                    return $userStats['best_score_from_leaderboard'] ?? 0;
-                }
-                break;
+            case 'total_score':
+                return $userStats['total_score_from_leaderboard'] ?? 0;
                 
-            case 'streak':
+            case 'best_score':
+                return $userStats['best_score_from_leaderboard'] ?? 0;
+                
+            case 'streak_days':
                 return $userStats['current_play_streak'] ?? 0;
                 
-            case 'rounds':
+            case 'total_rounds':
                 return $userStats['total_rounds_from_leaderboard'] ?? 0;
                 
             case 'accuracy':
                 return $userStats['best_accuracy'] ?? 0;
+                
+            case 'consecutive_wins':
+                // This would need additional tracking - for now, return 0
+                return 0;
         }
         
         return 0;

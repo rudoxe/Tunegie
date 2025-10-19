@@ -137,7 +137,9 @@ try {
     ];
     
     // Check and award achievements
+    error_log('Achievement system: Checking achievements for user ' . $userId . ' with data: ' . json_encode($gameData));
     $newAchievements = $achievementSystem->checkAndAwardAchievements($userId, $gameData);
+    error_log('Achievement system: Awarded ' . count($newAchievements) . ' new achievements');
     
     sendResponse([
         'message' => 'Score saved successfully',

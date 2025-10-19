@@ -1,70 +1,149 @@
-# Getting Started with Create React App
+# Tunegie - Music Guessing Game
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack music guessing game built with React frontend, PHP backend, and Next.js admin panel.
 
-## Available Scripts
+## Quick Start
 
-In the project directory, you can run:
+### Automated Setup (Recommended)
 
-### `npm start`
+1. **Run the setup script:**
+   ```cmd
+   setup_project.bat
+   ```
+   
+   This will automatically:
+   - Start Laragon services
+   - Set up the database with all tables
+   - Install all dependencies 
+   - Launch the applications
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+2. **Access your applications:**
+   - **Frontend**: http://localhost:3000
+   - **Backend API**: http://localhost:8000
+   - **Admin Panel**: http://localhost:3001/admin
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Prerequisites
 
-### `npm test`
+- **Laragon** (with Apache, MySQL, PHP 8.1+)
+- **Node.js** (v16+ recommended)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Features
 
-### `npm run build`
+- User Authentication - Register, login, password reset
+- Music Guessing Game - Multiple game modes and difficulties
+- Achievement System - 19 achievements to unlock
+- Daily Streaks - Track consecutive play days
+- Leaderboards - Compete with other players
+- Profile Management - Track progress and statistics
+- Admin Panel - Content management system
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Database
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The setup script creates and populates:
+- **Users & Authentication** tables
+- **Game sessions & rounds** tracking
+- **Leaderboards & statistics**
+- **Achievement system** (19 pre-loaded achievements)
+- **Daily streak tracking**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Manual Setup
 
-### `npm run eject`
+If you prefer manual setup or encounter issues, see **SETUP_GUIDE.md** for detailed step-by-step instructions.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## How to Play
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Register an account at http://localhost:3000
+2. Choose a game mode
+3. Listen to music clips and guess the song/artist
+4. Earn points and unlock achievements
+5. Build daily streaks by playing consistently
+6. Compete on leaderboards
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Achievement System
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+**Gameplay Achievements:**
+- First Steps (1 game) - 10 pts
+- Game Veteran (10 games) - 25 pts  
+- Game Master (50 games) - 100 pts
+- Game Legend (100 games) - 250 pts
 
-## Learn More
+**Scoring Achievements:**
+- Score Settler (1 point) - 5 pts
+- Score Climber (1000 total points) - 50 pts
+- High Roller (500 points single game) - 75 pts
+- Perfect Game (100% accuracy) - 150 pts
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+**Streak Achievements:**
+- Streak Starter (3 days) - 20 pts
+- Dedicated Player (7 days) - 50 pts
+- Streak Warrior (14 days) - 100 pts
+- Unstoppable (30 days) - 300 pts
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Admin Panel
 
-### Code Splitting
+Access the admin panel at http://localhost:3001/admin
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+**Default Login:**
+- Username: `admin`
+- Password: `password`
 
-### Analyzing the Bundle Size
+**Features:**
+- Content management
+- User statistics
+- Game analytics
+- System configuration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Project Structure
 
-### Making a Progressive Web App
+```
+Tunegie/
+├── app/                    # Next.js admin panel
+├── backend/php/           # PHP API backend
+├── frontend/              # React frontend
+├── database/              # SQL schemas and migrations
+├── data/                  # Admin panel data storage
+├── setup_project.bat      # Automated setup script
+├── SETUP_GUIDE.md         # Detailed setup guide
+└── README.md              # This file
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Troubleshooting
 
-### Advanced Configuration
+### Common Issues:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+1. **Script fails to run**: Right-click `setup_project.bat` → "Run as administrator"
 
-### Deployment
+2. **Database connection error**: 
+   - Ensure Laragon MySQL is running
+   - Check database credentials in `backend/php/config/config.php`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+3. **Frontend won't start**:
+   - Ensure Node.js is installed
+   - Try deleting `node_modules` and running script again
 
-### `npm run build` fails to minify
+4. **Achievement system not working**:
+   - Verify all SQL scripts ran successfully
+   - Check timezone settings in backend config
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Getting Help:
+
+1. Check the **SETUP_GUIDE.md** for detailed instructions
+2. Verify all prerequisites are installed
+3. Check Laragon logs for errors
+4. Ensure all ports (3000, 3001, 8000) are available
+
+## Production Deployment
+
+For production deployment:
+
+1. Set up proper database credentials
+2. Configure environment variables
+3. Build production assets: `npm run build`
+4. Set up proper authentication
+5. Configure HTTPS and security headers
+
+---
+
+**Enjoy playing Tunegie!**
+
+Built with React, PHP, MySQL, and Next.js

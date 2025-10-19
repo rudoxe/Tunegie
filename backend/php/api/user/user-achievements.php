@@ -73,11 +73,11 @@ try {
     foreach ($availableAchievements as &$achievement) {
         $progress = calculateProgress($achievement, $userStats);
         $achievement['progress'] = $progress;
-        $achievement['progress_percentage'] = min(100, ($progress / $achievement['threshold_value']) * 100);
+        $achievement['progress_percentage'] = min(100, ($progress / $achievement['condition_value']) * 100);
     }
     
     // Get achievement statistics
-    $totalPoints = array_sum(array_column($earnedAchievements, 'points'));
+    $totalPoints = array_sum(array_column($earnedAchievements, 'points_reward'));
     $totalAvailable = count($allAchievements);
     $totalEarned = count($earnedAchievements);
     $completionPercentage = $totalAvailable > 0 ? round(($totalEarned / $totalAvailable) * 100, 1) : 0;
@@ -109,32 +109,30 @@ try {
 function calculateProgress($achievement, $userStats) {
     if (!$userStats) return 0;
     
-    $type = $achievement['type'];
-    $thresholdType = $achievement['threshold_type'];
+    $conditionType = $achievement['condition_type'];
     
-    switch ($type) {
-        case 'games':
-            if ($thresholdType === 'total') {
-                return $userStats['total_games_from_leaderboard'] ?? 0;
-            }
-            break;
+    switch ($conditionType) {
+        case 'total_games':
+            return $userStats['total_games_from_leaderboard'] ?? 0;
             
-        case 'score':
-            if ($thresholdType === 'total') {
-                return $userStats['total_score_from_leaderboard'] ?? 0;
-            } elseif ($thresholdType === 'single_game') {
-                return $userStats['best_score_from_leaderboard'] ?? 0;
-            }
-            break;
+        case 'total_score':
+            return $userStats['total_score_from_leaderboard'] ?? 0;
             
-        case 'streak':
+        case 'best_score':
+            return $userStats['best_score_from_leaderboard'] ?? 0;
+            
+        case 'streak_days':
             return $userStats['current_play_streak'] ?? 0;
             
-        case 'rounds':
+        case 'total_rounds':
             return $userStats['total_rounds_from_leaderboard'] ?? 0;
             
         case 'accuracy':
             return $userStats['best_accuracy'] ?? 0;
+            
+        case 'consecutive_wins':
+            // This would need additional tracking - for now, return 0
+            return 0;
     }
     
     return 0;

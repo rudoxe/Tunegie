@@ -1,4 +1,7 @@
 <?php
+// Set timezone for consistent date/time handling
+date_default_timezone_set('Europe/Berlin'); // Adjust to your timezone
+
 // Suppress HTML error output for JSON responses
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS user_achievements (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     achievement_id INT NOT NULL,
+    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     progress_value INT DEFAULT 0, -- current progress towards achievement
     is_completed BOOLEAN DEFAULT FALSE,
