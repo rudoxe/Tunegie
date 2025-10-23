@@ -352,3 +352,4 @@ const Login = ({ onSuccess, onSwitchToRegister }) => {
 };
 
 export default Login;
+

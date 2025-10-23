@@ -185,3 +185,4 @@ const LeaderboardTable = ({ data, loading, activeTab }) => {
 };
 
 export default LeaderboardTable;
+

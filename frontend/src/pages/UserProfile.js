@@ -21,7 +21,7 @@ const UserProfile = () => {
     setError('');
     
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/user-profile.php?id=${userId}`, {
+      const response = await fetch(`${API_BASE}/api/user/user-profile.php?id=${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

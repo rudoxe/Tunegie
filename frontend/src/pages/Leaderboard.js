@@ -18,7 +18,7 @@ const Leaderboard = () => {
   const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/backend/php/api/game/leaderboard.php?type=${activeTab}&game_mode=${gameMode}&limit=25`);
+      const response = await fetch(`${API_BASE}/api/game/leaderboard.php?type=${activeTab}&game_mode=${gameMode}&limit=25`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -39,7 +39,7 @@ const Leaderboard = () => {
     
     try {
       const token = localStorage.getItem('tunegie_token');
-      const response = await fetch(`${API_BASE}/backend/php/api/user/user_stats.php`, {
+      const response = await fetch(`${API_BASE}/api/user/user_stats.php`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -196,3 +196,4 @@ const Leaderboard = () => {
 };
 
 export default Leaderboard;
+

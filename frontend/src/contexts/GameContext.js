@@ -160,7 +160,7 @@ export const GameProvider = ({ children }) => {
     
     console.log('Sending score payload:', payload);
 
-    const response = await fetch(`${API_BASE}/backend/php/api/game/save_score.php`, {
+    const response = await fetch(`${API_BASE}/api/game/save_score.php`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -248,3 +248,4 @@ export const GameProvider = ({ children }) => {
     </GameContext.Provider>
   );
 };
+

@@ -21,7 +21,7 @@ const History = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('tunegie_token');
-      const response = await fetch(`${API_BASE}/backend/php/api/user/user_stats.php`, {
+      const response = await fetch(`${API_BASE}/api/user/user_stats.php`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -324,3 +324,4 @@ const History = () => {
 };
 
 export default History;
+

@@ -40,7 +40,7 @@ const AchievementView = () => {
     setLoading(true);
     try {
       // Use the same API base pattern as other components
-      const apiUrl = `${API_BASE}/backend/php/api/user/achievements.php`;
+      const apiUrl = `${API_BASE}/api/user/achievements.php`;
       console.log('Fetching achievements from:', apiUrl);
       console.log('User authenticated:', !!user);
       console.log('Token exists:', !!token);
@@ -79,7 +79,7 @@ const AchievementView = () => {
       if (err.message.includes('401') || err.message.includes('Unauthorized')) {
         console.log('Auth failed, trying public endpoint...');
         try {
-          const publicUrl = `${API_BASE}/backend/php/api/user/achievements-public.php`;
+          const publicUrl = `${API_BASE}/api/user/achievements-public.php`;
           const publicResponse = await fetch(publicUrl);
           
           if (publicResponse.ok) {

@@ -36,7 +36,7 @@ const UserSearch = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/search-users.php?q=${encodeURIComponent(searchQuery)}`, {
+      const response = await fetch(`${API_BASE}/api/user/search-users.php?q=${encodeURIComponent(searchQuery)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

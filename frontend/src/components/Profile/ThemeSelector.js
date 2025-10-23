@@ -13,7 +13,7 @@ const ThemeSelector = () => {
     // Fetch current privacy setting
     const fetchPrivacy = async () => {
       try {
-        const response = await fetch(`${API_BASE}/backend/php/api/user/profile.php`, {
+        const response = await fetch(`${API_BASE}/api/user/profile.php`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -34,7 +34,7 @@ const ThemeSelector = () => {
     setSavingPrivacy(true);
     setPrivacyError('');
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/profile.php`, {
+      const response = await fetch(`${API_BASE}/api/user/profile.php`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -134,3 +134,4 @@ const ThemeSelector = () => {
 };
 
 export default ThemeSelector;
+

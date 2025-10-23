@@ -35,7 +35,7 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/profile.php`, {
+      const response = await fetch(`${API_BASE}/api/user/profile.php`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -60,7 +60,7 @@ const Profile = () => {
   const fetchProfileData = async () => {
     setStreakLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/my-profile.php`, {
+      const response = await fetch(`${API_BASE}/api/user/my-profile.php`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -142,7 +142,7 @@ const Profile = () => {
   const fetchUsernameHistory = async () => {
     setHistoryLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/username-history.php`, {
+      const response = await fetch(`${API_BASE}/api/user/username-history.php`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -174,7 +174,7 @@ const Profile = () => {
     setMessage('');
 
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/profile.php`, {
+      const response = await fetch(`${API_BASE}/api/user/profile.php`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -229,7 +229,7 @@ const Profile = () => {
     formDataFile.append('profile_picture', file);
 
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/user/upload_profile_picture.php`, {
+      const response = await fetch(`${API_BASE}/api/user/upload_profile_picture.php`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -586,3 +586,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
