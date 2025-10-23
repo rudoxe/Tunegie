@@ -1,26 +1,8 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/backend/(.*)",
-      "dest": "https://tunegie-production.up.railway.app/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "REACT_APP_TIDAL_CLIENT_ID": "@tidal_client_id",
-    "REACT_APP_TIDAL_CLIENT_SECRET": "@tidal_client_secret"
-  }
+  ]
 }
