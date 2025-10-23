@@ -126,17 +126,28 @@ function base64url_decode($data) {
 
 // Get Authorization header
 function getAuthorizationHeader() {
-    // Handle different environments
+    // Check $_SERVER first (most reliable)
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        return $_SERVER['HTTP_AUTHORIZATION'];
+    }
+    
+    // Check for Authorization in $_SERVER with different format
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    }
+    
+    // Try getallheaders if available
     if (function_exists('getallheaders')) {
         $headers = getallheaders();
         if (isset($headers['Authorization'])) {
             return $headers['Authorization'];
         }
-    }
-    
-    // Fallback for CLI and other environments
-    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-        return $_SERVER['HTTP_AUTHORIZATION'];
+        // Case-insensitive check
+        foreach ($headers as $key => $value) {
+            if (strtolower($key) === 'authorization') {
+                return $value;
+            }
+        }
     }
     
     return null;
