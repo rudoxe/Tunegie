@@ -136,6 +136,20 @@ function getAuthorizationHeader() {
         return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
     }
     
+    // Try apache_request_headers (works on PHP built-in server)
+    if (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        if (isset($headers['Authorization'])) {
+            return $headers['Authorization'];
+        }
+        // Case-insensitive check
+        foreach ($headers as $key => $value) {
+            if (strtolower($key) === 'authorization') {
+                return $value;
+            }
+        }
+    }
+    
     // Try getallheaders if available
     if (function_exists('getallheaders')) {
         $headers = getallheaders();
@@ -145,6 +159,16 @@ function getAuthorizationHeader() {
         // Case-insensitive check
         foreach ($headers as $key => $value) {
             if (strtolower($key) === 'authorization') {
+                return $value;
+            }
+        }
+    }
+    
+    // Manual parsing of all HTTP headers in $_SERVER
+    foreach ($_SERVER as $key => $value) {
+        if (strpos($key, 'HTTP_') === 0) {
+            $header = str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))));
+            if (strtolower($header) === 'authorization') {
                 return $value;
             }
         }
