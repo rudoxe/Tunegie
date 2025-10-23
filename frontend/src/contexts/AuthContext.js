@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/auth/login.php`, {
+      const response = await fetch(`${API_BASE}/api/auth/login.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (username, email, password) => {
     try {
-      const response = await fetch(`${API_BASE}/backend/php/api/auth/register.php`, {
+      const response = await fetch(`${API_BASE}/api/auth/register.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
