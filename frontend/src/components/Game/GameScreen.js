@@ -4,6 +4,7 @@ import TrackPlayer from '../TrackPlayer';
 const GameScreen = ({
   gameData,
   currentTrack,
+  difficulty,
   userGuess,
   setUserGuess,
   showAnswer,
@@ -193,6 +194,7 @@ const GameScreen = ({
             {/* Audio Player */}
             <TrackPlayer 
               track={currentTrack} 
+              difficulty={difficulty}
               onSnippetEnd={() => console.log('Snippet finished playing')}
             />
             

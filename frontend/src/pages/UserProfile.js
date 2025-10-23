@@ -43,12 +43,6 @@ const UserProfile = () => {
     }
   };
 
-  const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
   };
@@ -111,11 +105,23 @@ const UserProfile = () => {
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
             <div className="relative">
               {user.profile_picture ? (
-                <img
-                  src={`${API_BASE}/${user.profile_picture}`}
-                  alt={user.username}
-                  className={`w-24 h-24 rounded-full object-cover border-4 border-${theme.primary} transition-all duration-300 hover:scale-110`}
-                />
+                <>
+                  <img
+                    src={`${API_BASE}/backend/php/serve_image.php?path=${user.profile_picture}`}
+                    alt={user.username}
+                    className={`w-24 h-24 rounded-full object-cover border-4 border-${theme.primary} transition-all duration-300 hover:scale-110`}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const fallback = e.target.parentNode.querySelector('.fallback-avatar');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className={`fallback-avatar w-24 h-24 rounded-full bg-gray-700 border-4 border-${theme.primary} items-center justify-center`} style={{display: 'none'}}>
+                    <svg className={`w-12 h-12 text-${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </>
               ) : (
                 <div className={`w-24 h-24 rounded-full bg-gray-700 border-4 border-${theme.primary} flex items-center justify-center`}>
                   <svg className={`w-12 h-12 text-${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +147,7 @@ const UserProfile = () => {
 
         {/* Stats Grid */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className={`bg-${theme.surface} rounded-lg p-6 border border-${theme.surfaceBorder} text-center transition-all duration-300 hover:${theme.glow}/20`}>
               <div className={`text-3xl font-bold text-${theme.primary} mb-2`}>
                 {stats.total_games_played || 0}
@@ -161,13 +167,6 @@ const UserProfile = () => {
                 {stats.best_accuracy ? `${parseFloat(stats.best_accuracy).toFixed(1)}%` : '0%'}
               </div>
               <div className={`text-${theme.textSecondary} text-sm`}>Best Accuracy</div>
-            </div>
-
-            <div className={`bg-${theme.surface} rounded-lg p-6 border border-${theme.surfaceBorder} text-center transition-all duration-300 hover:${theme.glow}/20`}>
-              <div className={`text-3xl font-bold text-${theme.text} mb-2`}>
-                {formatTime(stats.total_time_played_seconds || 0)}
-              </div>
-              <div className={`text-${theme.textSecondary} text-sm`}>Time Played</div>
             </div>
           </div>
         )}

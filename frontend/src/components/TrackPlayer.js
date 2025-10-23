@@ -1,25 +1,36 @@
 import React, { useState, useRef, useEffect } from 'react';
 import itunesApiService from '../services/itunesApi';
 
-const TrackPlayer = ({ track, onSnippetEnd }) => {
+const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [hasPlayed, setHasPlayed] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
   const [audioError, setAudioError] = useState(null);
   const [previewInfo, setPreviewInfo] = useState(null);
+  
+  // Get snippet duration based on difficulty
+  const getSnippetDuration = (difficulty) => {
+    switch(difficulty) {
+      case 'easy': return 10;
+      case 'hard': return 2;
+      case 'medium':
+      default: return 5;
+    }
+  };
+  
+  const snippetDuration = getSnippetDuration(difficulty);
+  
   const [snippetStart, setSnippetStart] = useState(() => {
     // Start at random position within 30-second preview
     const previewDuration = 30;
-    const snippetDuration = 5;
-    const maxStart = previewDuration - snippetDuration; // 0-25 seconds
-    return Math.floor(Math.random() * maxStart);
+    const maxStart = previewDuration - snippetDuration; // Ensure we don't go past preview
+    return Math.floor(Math.random() * Math.max(0, maxStart));
   });
   
   const audioRef = useRef(null);
   const intervalRef = useRef(null);
   const snippetTimeoutRef = useRef(null);
-  const snippetDuration = 5; // 5 seconds
 
   // Fetch preview URL when component loads
   useEffect(() => {
@@ -70,7 +81,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
     };
   }, [track]);
 
-  // Reset when track changes
+  // Reset when track or difficulty changes
   useEffect(() => {
     setIsPlaying(false);
     setCurrentTime(0);
@@ -80,13 +91,13 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
     // Generate new random start position within preview
     const previewDuration = 30;
     const maxStart = previewDuration - snippetDuration;
-    const randomStart = Math.floor(Math.random() * maxStart);
+    const randomStart = Math.floor(Math.random() * Math.max(0, maxStart));
     setSnippetStart(randomStart);
     
     if (audioRef.current) {
       audioRef.current.pause();
     }
-  }, [track?.id]);
+  }, [track?.id, snippetDuration]);
 
 
   // Play real audio preview
@@ -209,7 +220,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
     // Shuffle within the 30-second preview
     const previewDuration = 30;
     const maxStart = previewDuration - snippetDuration;
-    const newRandomStart = Math.floor(Math.random() * maxStart);
+    const newRandomStart = Math.floor(Math.random() * Math.max(0, maxStart));
     
     setSnippetStart(newRandomStart);
     setCurrentTime(0);
@@ -283,7 +294,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
         {audioReady && previewInfo?.previewUrl && !audioError && (
           <div className="mb-4 p-2 bg-green-600/20 border border-green-500/30 rounded">
             <p className="text-green-300 text-xs">
-              🎵 Audio preview ready! Click play to hear 5 seconds.
+              🎵 Audio preview ready! Click play to hear {snippetDuration} seconds.
             </p>
           </div>
         )}
@@ -306,7 +317,7 @@ const TrackPlayer = ({ track, onSnippetEnd }) => {
                 ? 'bg-red-600 hover:bg-red-500 text-white'
                 : 'bg-green-600 hover:bg-green-500 text-black'
             }`}
-            title={isPlaying ? 'Stop' : hasPlayed ? 'Play Again' : 'Play 5s Snippet'}
+            title={isPlaying ? 'Stop' : hasPlayed ? 'Play Again' : `Play ${snippetDuration}s Snippet`}
           >
             {isPlaying ? '⏹️' : '▶️'}
           </button>

@@ -285,11 +285,23 @@ const Profile = () => {
             <div className="flex flex-col items-center">
               <div className="relative group">
                 {profile.profile_picture ? (
-                  <img
-                    src={`${API_BASE}/${profile.profile_picture}`}
-                    alt="Profile"
-                    className={`w-24 h-24 rounded-full object-cover border-2 border-${theme.primary} transition-all duration-300 group-hover:scale-110 group-hover:${theme.glow}`}
-                  />
+                  <>
+                    <img
+                      src={`${API_BASE}/backend/php/serve_image.php?path=${profile.profile_picture}`}
+                      alt="Profile"
+                      className={`w-24 h-24 rounded-full object-cover border-2 border-${theme.primary} transition-all duration-300 group-hover:scale-110 group-hover:${theme.glow}`}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const fallback = e.target.parentNode.querySelector('.fallback-avatar');
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                    <div className={`fallback-avatar w-24 h-24 rounded-full bg-gray-700 border-2 border-${theme.primary} items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:${theme.glow}`} style={{display: 'none'}}>
+                      <svg className={`w-12 h-12 text-${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  </>
                 ) : (
                   <div className={`w-24 h-24 rounded-full bg-gray-700 border-2 border-${theme.primary} flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:${theme.glow}`}>
                     <svg className={`w-12 h-12 text-${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,9 +397,19 @@ const Profile = () => {
 
         {/* Achievements Section */}
         <div className={`bg-${theme.surface} rounded-lg p-6 border border-${theme.surfaceBorder} mb-6 transition-all duration-300 hover:${theme.glow}/20`}>
-          <h3 className={`text-xl font-semibold text-${theme.text} mb-4 flex items-center`}>
-            🏆 Achievements
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className={`text-xl font-semibold text-${theme.text} flex items-center`}>
+              🏆 Achievements
+            </h3>
+            {user && (
+              <button
+                onClick={() => window.location.href = '/achievements'}
+                className={`text-${theme.primary} hover:text-${theme.primaryHover} text-sm font-medium transition-colors duration-200 hover:underline`}
+              >
+                View All →
+              </button>
+            )}
+          </div>
           
           {/* Achievement Summary */}
           <div className={`bg-gradient-to-r from-${theme.primary}/10 to-${theme.primaryHover}/10 border border-${theme.primary}/20 rounded-lg p-4 mb-4`}>

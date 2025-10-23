@@ -37,7 +37,7 @@ export const ErrorScreen = ({ errorMessage, onRetry }) => (
 );
 
 // Ready Screen Component
-export const ReadyScreen = ({ gameData, onStart }) => {
+export const ReadyScreen = ({ gameData, onStart, difficulty, onDifficultyChange }) => {
   const getModeInfo = () => {
     if (gameData.gameMode === 'artist') {
       return { 
@@ -61,9 +61,15 @@ export const ReadyScreen = ({ gameData, onStart }) => {
   };
 
   const modeInfo = getModeInfo();
+  
+  const difficultyOptions = [
+    { id: 'easy', label: 'Easy', duration: 10, icon: '😊', color: 'from-green-500 to-green-600' },
+    { id: 'medium', label: 'Medium', duration: 5, icon: '😐', color: 'from-yellow-500 to-orange-500' },
+    { id: 'hard', label: 'Hard', duration: 2, icon: '😤', color: 'from-red-500 to-red-600' }
+  ];
 
   return (
-    <div className="text-center py-20 max-w-2xl mx-auto">
+    <div className="text-center py-20 max-w-3xl mx-auto">
       <div className="text-6xl mb-6">{modeInfo.icon}</div>
       <h2 className="text-4xl font-bold text-green-400 mb-6">Ready to Play!</h2>
       <h3 className="text-2xl font-semibold text-green-300 mb-4">{modeInfo.title}</h3>
@@ -71,10 +77,44 @@ export const ReadyScreen = ({ gameData, onStart }) => {
         {modeInfo.desc} We've loaded {gameData.tracks.length} tracks for your guessing challenge.
       </p>
       
+      {/* Difficulty Selection */}
+      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-6">
+        <h3 className="text-xl font-semibold text-green-400 mb-4">Choose Difficulty:</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          {difficultyOptions.map((option) => (
+            <button
+              key={option.id}
+              onClick={() => onDifficultyChange(option.id)}
+              className={`p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                difficulty === option.id
+                  ? `bg-gradient-to-br ${option.color} border-white text-white shadow-lg`
+                  : 'bg-black bg-opacity-50 border-gray-600 text-green-300 hover:border-green-500'
+              }`}
+            >
+              <div className="text-3xl mb-2">{option.icon}</div>
+              <div className="font-bold text-lg mb-1">{option.label}</div>
+              <div className="text-sm opacity-90">
+                {option.duration} second{option.duration !== 1 ? 's' : ''}
+              </div>
+              <div className="text-xs opacity-75 mt-1">
+                {option.id === 'easy' && 'More time to think'}
+                {option.id === 'medium' && 'Balanced challenge'}
+                {option.id === 'hard' && 'Quick reflexes needed'}
+              </div>
+            </button>
+          ))}
+        </div>
+        <div className="text-center">
+          <span className="text-green-200 text-opacity-60 text-sm">
+            Selected: {difficultyOptions.find(d => d.id === difficulty)?.duration}s snippets
+          </span>
+        </div>
+      </div>
+      
       <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-8">
         <h3 className="text-xl font-semibold text-green-400 mb-4">How to Play:</h3>
         <div className="space-y-3 text-green-200 text-opacity-80">
-          <p>Listen to 5-second audio snippets</p>
+          <p>Listen to {difficultyOptions.find(d => d.id === difficulty)?.duration}-second audio snippets</p>
           <p>Guess the song title or artist name</p>
           <p>No time limit - replay snippets anytime!</p>
           <p>Score points for each correct guess</p>

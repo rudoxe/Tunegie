@@ -93,11 +93,23 @@ export default function Layout() {
                     className={`w-11 h-11 rounded-full cursor-pointer transition-all duration-300 hover:${theme.glow} hover:ring-3 hover:ring-${theme.primary}/30 hover:scale-110 overflow-hidden flex items-center justify-center bg-gradient-to-br from-${theme.primary}/20 to-${theme.accent}/20 border-2 border-${theme.primary}/50`}
                   >
                     {user?.profile_picture ? (
-                      <img
-                        src={`${API_BASE}/${user.profile_picture}`}
-                        alt="Profile"
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                      />
+                      <>
+                        <img
+                          src={`${API_BASE}/backend/php/serve_image.php?path=${user.profile_picture}`}
+                          alt="Profile"
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            const fallback = e.target.parentNode.querySelector('.fallback-avatar');
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                        <div className={`fallback-avatar w-6 h-6 text-${theme.primary} transition-colors duration-300`} style={{display: 'none'}}>
+                          <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      </>
                     ) : (
                       <svg className={`w-6 h-6 text-${theme.primary} transition-colors duration-300`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

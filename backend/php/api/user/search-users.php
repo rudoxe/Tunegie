@@ -34,6 +34,16 @@ try {
     $stmt->execute([$searchTerm]);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Validate that profile picture files still exist; otherwise null them out
+    foreach ($users as &$user) {
+        if (!empty($user['profile_picture'])) {
+            $fullPath = __DIR__ . '/../' . $user['profile_picture']; // api/uploads/...
+            if (!file_exists($fullPath)) {
+                $user['profile_picture'] = null;
+            }
+        }
+    }
+
     sendResponse(['users' => $users]);
     
 } catch (PDOException $e) {

@@ -33,6 +33,14 @@ try {
         sendError('User not found', 404);
     }
 
+    // If stored path points to a non-existent file, null it so frontend shows fallback immediately
+    if (!empty($user['profile_picture'])) {
+        $fullPath = __DIR__ . '/../' . $user['profile_picture'];
+        if (!file_exists($fullPath)) {
+            $user['profile_picture'] = null;
+        }
+    }
+
     // Check if profile is private
     if ($user['is_private']) {
         sendError('This profile is private', 403);
@@ -94,11 +102,11 @@ try {
         SELECT 
             a.id,
             a.name,
+            a.title,
             a.description,
             a.icon,
-            a.color,
-            a.type,
-            a.points,
+            a.category,
+            a.points_reward as points,
             ua.earned_at
         FROM user_achievements ua
         JOIN achievements a ON ua.achievement_id = a.id
@@ -108,11 +116,25 @@ try {
     $stmt->execute([$userId]);
     $userAchievements = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Map category to colors for frontend display
+    $categoryColors = [
+        'gameplay' => 'bronze',
+        'scoring' => 'gold', 
+        'consistency' => 'silver',
+        'streak' => 'blue',
+        'special' => 'purple'
+    ];
+    
+    // Add color mapping to achievements
+    foreach ($userAchievements as &$achievement) {
+        $achievement['color'] = $categoryColors[$achievement['category']] ?? 'bronze';
+    }
+    
     // Get total achievement stats
     $stmt = $pdo->prepare('
         SELECT 
             COUNT(ua.id) as earned_count,
-            SUM(a.points) as total_points,
+            SUM(a.points_reward) as total_points,
             (SELECT COUNT(*) FROM achievements) as total_available
         FROM user_achievements ua
         JOIN achievements a ON ua.achievement_id = a.id

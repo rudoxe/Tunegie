@@ -14,6 +14,7 @@ export default function Game() {
   const { isAuthenticated } = useAuth();
   const [gameState, setGameState] = useState('loading'); // selectMode, loading, ready, playing, finished, error
   const [currentTrack, setCurrentTrack] = useState(null);
+  const [difficulty, setDifficulty] = useState('medium'); // easy (10s), medium (5s), hard (2s)
   const [gameData, setGameData] = useState({
     tracks: [],
     backupTracks: [],
@@ -24,7 +25,8 @@ export default function Game() {
     answers: [],
     gameMode: null, // 'random', 'artist', 'genre'
     selectedArtist: null,
-    selectedGenre: null
+    selectedGenre: null,
+    difficulty: 'medium'
   });
   const [userGuess, setUserGuess] = useState('');
   const [showAnswer, setShowAnswer] = useState(false);
@@ -93,10 +95,11 @@ export default function Game() {
         answers: [],
         gameMode: gameMode,
         selectedArtist: gameMode === 'artist' ? selectedOption : null,
-        selectedGenre: gameMode === 'genre' ? selectedOption : null
+        selectedGenre: gameMode === 'genre' ? selectedOption : null,
+        difficulty: difficulty
       }));
 
-      setCurrentTrack(tracks[0]);
+      setCurrentTrack(gameTracks[0]);
       setGameState('ready');
 
     } catch (error) {
@@ -216,6 +219,14 @@ export default function Game() {
   const handleRetry = () => {
     setGameState('selectMode');
   };
+  
+  const handleDifficultyChange = (newDifficulty) => {
+    setDifficulty(newDifficulty);
+    setGameData(prev => ({
+      ...prev,
+      difficulty: newDifficulty
+    }));
+  };
 
   return (
     <div className="w-full min-h-screen py-8">
@@ -232,6 +243,8 @@ export default function Game() {
       {gameState === 'ready' && (
         <ReadyScreen 
           gameData={gameData} 
+          difficulty={difficulty}
+          onDifficultyChange={handleDifficultyChange}
           onStart={startGameSession} 
         />
       )}
@@ -239,6 +252,7 @@ export default function Game() {
         <GameScreen
           gameData={gameData}
           currentTrack={currentTrack}
+          difficulty={difficulty}
           userGuess={userGuess}
           setUserGuess={setUserGuess}
           showAnswer={showAnswer}

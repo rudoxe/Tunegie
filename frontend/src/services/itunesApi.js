@@ -179,11 +179,14 @@ class iTunesApiService {
     try {
       // Search for popular terms to get current hits
       const popularSearchTerms = [
-        'top songs 2024',
-        'billboard hot 100',
-        'popular music',
-        'hit songs',
-        'trending music'
+        'pop music 2024',
+        'top hits 2024',
+        'popular songs',
+        'hit music',
+        'trending songs',
+        'chart hits',
+        'radio hits',
+        'best songs 2024'
       ];
 
       let allTracks = [];
@@ -192,12 +195,23 @@ class iTunesApiService {
       for (const term of popularSearchTerms) {
         try {
           const tracks = await this.searchTracks(term, 50);
-          allTracks.push(...tracks);
+          if (tracks && tracks.length > 0) {
+            allTracks.push(...tracks);
+            console.log(`✅ Found ${tracks.length} tracks for term: ${term}`);
+          } else {
+            console.warn(`⚠️ No tracks found for term: ${term}`);
+          }
           
           // Small delay to be respectful to the API
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 150));
         } catch (error) {
-          console.warn(`Search failed for term: ${term}`, error);
+          console.warn(`❌ Search failed for term: ${term}`, error);
+        }
+        
+        // If we have enough tracks, break early
+        if (allTracks.length >= count * 2) {
+          console.log(`🎯 Early break - have enough tracks (${allTracks.length})`);
+          break;
         }
       }
 
@@ -207,6 +221,10 @@ class iTunesApiService {
       );
 
       console.log(`🎵 Found ${uniqueTracks.length} unique tracks total`);
+
+      if (uniqueTracks.length < count) {
+        console.warn(`⚠️ Only found ${uniqueTracks.length} tracks, but need ${count}`);
+      }
 
       // Shuffle and return requested count
       const shuffled = uniqueTracks.sort(() => 0.5 - Math.random());
@@ -227,29 +245,40 @@ class iTunesApiService {
     
     // Map genre names to search terms that work well with iTunes
     const genreSearchTerms = {
-      'pop': ['pop music', 'pop hits', 'top pop songs'],
-      'rock': ['rock music', 'rock hits', 'classic rock'],
-      'hip-hop': ['hip hop', 'rap music', 'hip hop hits'],
-      'r&b': ['r&b music', 'soul music', 'rnb hits'],
-      'electronic': ['electronic music', 'edm', 'electronic dance'],
-      'country': ['country music', 'country hits', 'country songs'],
-      'indie': ['indie music', 'independent music', 'indie rock'],
-      'alternative': ['alternative rock', 'alternative music', 'alt rock']
+      'pop': ['pop music', 'pop hits', 'top pop songs', 'popular pop'],
+      'rock': ['rock music', 'rock hits', 'classic rock', 'rock songs'],
+      'hip-hop': ['hip hop', 'rap music', 'hip hop hits', 'rap songs'],
+      'r&b': ['r&b music', 'soul music', 'rnb hits', 'rhythm and blues'],
+      'electronic': ['electronic music', 'edm', 'electronic dance', 'dance music'],
+      'country': ['country music', 'country hits', 'country songs', 'country pop'],
+      'indie': ['indie music', 'independent music', 'indie rock', 'indie pop'],
+      'alternative': ['alternative rock', 'alternative music', 'alt rock', 'alternative songs']
     };
 
-    const searchTerms = genreSearchTerms[genre] || [genre, `${genre} music`, `${genre} songs`];
+    const searchTerms = genreSearchTerms[genre] || [genre, `${genre} music`, `${genre} songs`, `${genre} hits`];
     let allTracks = [];
 
     // Search each term for the genre
     for (const term of searchTerms) {
       try {
-        const tracks = await this.searchTracks(term, 30);
-        allTracks.push(...tracks);
+        const tracks = await this.searchTracks(term, 40);
+        if (tracks && tracks.length > 0) {
+          allTracks.push(...tracks);
+          console.log(`✅ Found ${tracks.length} tracks for genre term: ${term}`);
+        } else {
+          console.warn(`⚠️ No tracks found for genre term: ${term}`);
+        }
         
         // Small delay between requests
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 150));
       } catch (error) {
-        console.warn(`Genre search failed for term: ${term}`, error);
+        console.warn(`❌ Genre search failed for term: ${term}`, error);
+      }
+      
+      // If we have enough tracks, break early
+      if (allTracks.length >= count * 2) {
+        console.log(`🎯 Early break - have enough genre tracks (${allTracks.length})`);
+        break;
       }
     }
 
@@ -258,11 +287,15 @@ class iTunesApiService {
       index === self.findIndex(t => t.trackId === track.trackId)
     );
 
-    console.log(`🎵 Found ${uniqueTracks.length} tracks for genre: ${genre}`);
+    console.log(`🎵 Found ${uniqueTracks.length} unique tracks for genre: ${genre}`);
 
     if (uniqueTracks.length === 0) {
       console.warn(`❌ No tracks found for genre: ${genre}`);
       return [];
+    }
+
+    if (uniqueTracks.length < count) {
+      console.warn(`⚠️ Only found ${uniqueTracks.length} tracks for genre ${genre}, but need ${count}`);
     }
 
     // Shuffle and return requested count

@@ -121,11 +121,23 @@ const UserSearch = () => {
             >
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
                 {user.profile_picture ? (
-                  <img
-                    src={`${API_BASE}/${user.profile_picture}`}
-                    alt={user.username}
-                    className="w-full h-full object-cover"
-                  />
+                  <>
+                    <img
+                      src={`${API_BASE}/backend/php/serve_image.php?path=${user.profile_picture}`}
+                      alt={user.username}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const fallback = e.target.parentNode.querySelector('.fallback-avatar');
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                    <div className="fallback-avatar w-full h-full items-center justify-center bg-gray-700" style={{display: 'none'}}>
+                      <svg className={`w-4 h-4 text-${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-700">
                     <svg className={`w-4 h-4 text-${theme.textMuted}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
