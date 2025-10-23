@@ -7,21 +7,22 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 // Database configuration - Railway environment variables or local fallback
-define('DB_HOST', $_ENV['MYSQLHOST'] ?? 'localhost');
-define('DB_NAME', $_ENV['MYSQLDATABASE'] ?? 'tunegie_db');
-define('DB_USER', $_ENV['MYSQLUSER'] ?? 'root');
-define('DB_PASS', $_ENV['MYSQLPASSWORD'] ?? '');
-define('DB_PORT', $_ENV['MYSQLPORT'] ?? '3306');
+define('DB_HOST', getenv('MYSQLHOST') ?: 'localhost');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'tunegie_db');
+define('DB_USER', getenv('MYSQLUSER') ?: 'root');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: '');
+define('DB_PORT', getenv('MYSQLPORT') ?: '3306');
 
 // JWT Secret - use Railway environment variable or fallback
-define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'your-secret-key-change-this-in-production');
+define('JWT_SECRET', getenv('JWT_SECRET') ?: 'your-secret-key-change-this-in-production');
 
 // CORS headers - allow Railway domain and localhost
 $allowedOrigins = [
     'http://localhost:3000',
-    'http://localhost:8000', 
-    $_ENV['RAILWAY_STATIC_URL'] ?? '',
-    $_ENV['FRONTEND_URL'] ?? ''
+    'http://localhost:8000',
+    'https://tunegie.vercel.app',
+    getenv('RAILWAY_STATIC_URL') ?: '',
+    getenv('FRONTEND_URL') ?: ''
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, array_filter($allowedOrigins))) {
