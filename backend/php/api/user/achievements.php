@@ -33,14 +33,14 @@ try {
             ua.unlocked_at,
             ua.notified,
             CASE WHEN ua.id IS NOT NULL THEN TRUE ELSE FALSE END as is_earned,
-            COALESCE(a.points, a.points_reward, 100) as points
+            COALESCE(a.points_reward, 100) as points
         FROM achievements a
         LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
         ORDER BY 
             CASE WHEN ua.id IS NOT NULL THEN 0 ELSE 1 END,
             ua.unlocked_at DESC,
             a.category,
-            COALESCE(a.points, a.points_reward, 100) DESC,
+            COALESCE(a.points_reward, 100) DESC,
             a.name ASC
     ");
     $stmt->execute([$userId]);
