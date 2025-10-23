@@ -107,7 +107,7 @@ const UserProfile = () => {
               {user.profile_picture ? (
                 <>
                   <img
-                    src={`${API_BASE}/backend/php/serve_image.php?path=${user.profile_picture}`}
+                    src={`${API_BASE}/api/serve_image.php?path=${user.profile_picture}`}
                     alt={user.username}
                     className={`w-24 h-24 rounded-full object-cover border-4 border-${theme.primary} transition-all duration-300 hover:scale-110`}
                     onError={(e) => {
@@ -221,3 +221,4 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+

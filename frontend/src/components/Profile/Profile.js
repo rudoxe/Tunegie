@@ -287,7 +287,7 @@ const Profile = () => {
                 {profile.profile_picture ? (
                   <>
                     <img
-                      src={`${API_BASE}/backend/php/serve_image.php?path=${profile.profile_picture}`}
+                      src={`${API_BASE}/api/serve_image.php?path=${profile.profile_picture}`}
                       alt="Profile"
                       className={`w-24 h-24 rounded-full object-cover border-2 border-${theme.primary} transition-all duration-300 group-hover:scale-110 group-hover:${theme.glow}`}
                       onError={(e) => {
@@ -586,4 +586,5 @@ const Profile = () => {
 };
 
 export default Profile;
+
 

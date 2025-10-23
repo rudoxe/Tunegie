@@ -224,3 +224,4 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
     </div>
   );
 };
+

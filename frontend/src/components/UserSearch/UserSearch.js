@@ -123,7 +123,7 @@ const UserSearch = () => {
                 {user.profile_picture ? (
                   <>
                     <img
-                      src={`${API_BASE}/backend/php/serve_image.php?path=${user.profile_picture}`}
+                      src={`${API_BASE}/api/serve_image.php?path=${user.profile_picture}`}
                       alt={user.username}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -169,3 +169,4 @@ const UserSearch = () => {
 };
 
 export default UserSearch;
+

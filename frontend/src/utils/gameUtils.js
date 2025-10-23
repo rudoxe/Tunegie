@@ -141,3 +141,4 @@ export const isSingleRelease = (albumTitle, trackTitle) => {
     albumTitle.toLowerCase().includes('featuring') ||
     albumTitle.split(' ').length <= 3;
 };
+

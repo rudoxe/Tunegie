@@ -95,7 +95,7 @@ export default function Layout() {
                     {user?.profile_picture ? (
                       <>
                         <img
-                          src={`${API_BASE}/backend/php/serve_image.php?path=${user.profile_picture}`}
+                          src={`${API_BASE}/api/serve_image.php?path=${user.profile_picture}`}
                           alt="Profile"
                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                           onError={(e) => {
@@ -163,4 +163,5 @@ export default function Layout() {
     </div>
   );
 }
+
 

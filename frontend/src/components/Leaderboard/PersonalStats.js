@@ -179,3 +179,4 @@ const PersonalStats = ({ stats }) => {
 
 export default PersonalStats;
 
+
