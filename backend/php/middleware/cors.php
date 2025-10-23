@@ -1,21 +1,13 @@
 <?php
 // CORS handling for all API endpoints
 function handleCors() {
-    // Allow from any origin for development (change in production)
-    $allowedOrigins = [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://[::1]:3000'
-    ];
-    
+    // Allow all origins
     $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
     
-    // For development, be more permissive
-    if ($origin && (in_array($origin, $allowedOrigins) || strpos($origin, 'localhost') !== false)) {
+    if ($origin) {
         header("Access-Control-Allow-Origin: {$origin}");
     } else {
-        // Fallback for development - allow localhost origins
-        header("Access-Control-Allow-Origin: http://localhost:3000");
+        header("Access-Control-Allow-Origin: *");
     }
     
     header('Access-Control-Allow-Credentials: true');
