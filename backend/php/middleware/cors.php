@@ -31,4 +31,3 @@ function handleCors() {
 // Call this at the beginning of each API endpoint
 handleCors();
 ?>
-
