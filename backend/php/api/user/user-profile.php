@@ -107,11 +107,11 @@ try {
             a.icon,
             a.category,
             a.points_reward as points,
-            ua.earned_at
+            ua.unlocked_at
         FROM user_achievements ua
         JOIN achievements a ON ua.achievement_id = a.id
         WHERE ua.user_id = ?
-        ORDER BY ua.earned_at DESC
+        ORDER BY ua.unlocked_at DESC
     ');
     $stmt->execute([$userId]);
     $userAchievements = $stmt->fetchAll(PDO::FETCH_ASSOC);

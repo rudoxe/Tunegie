@@ -141,7 +141,7 @@ class AchievementSystem {
      */
     private function awardAchievement($userId, $achievementId) {
         $stmt = $this->pdo->prepare("
-            INSERT IGNORE INTO user_achievements (user_id, achievement_id, earned_at)
+            INSERT IGNORE INTO user_achievements (user_id, achievement_id, unlocked_at)
             VALUES (?, ?, NOW())
         ");
         $stmt->execute([$userId, $achievementId]);
@@ -229,7 +229,7 @@ class AchievementSystem {
             $stmt = $this->pdo->prepare("
                 SELECT 
                     a.*,
-                    ua.earned_at,
+                    ua.unlocked_at,
                     CASE WHEN ua.id IS NOT NULL THEN TRUE ELSE FALSE END as is_completed
                 FROM achievements a
                 LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?

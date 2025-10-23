@@ -36,13 +36,13 @@ try {
     $stmt = $pdo->prepare("
         SELECT 
             a.*,
-            ua.earned_at,
+            ua.unlocked_at,
             CASE WHEN ua.id IS NOT NULL THEN TRUE ELSE FALSE END as is_earned
         FROM achievements a
         LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
         ORDER BY 
             CASE WHEN ua.id IS NOT NULL THEN 0 ELSE 1 END,
-            ua.earned_at DESC,
+            ua.unlocked_at DESC,
             a.type,
             a.threshold_value ASC
     ");

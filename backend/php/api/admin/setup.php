@@ -117,3 +117,4 @@ try {
     echo "❌ Error setting up database: " . $e->getMessage() . "\n";
 }
 ?>
+

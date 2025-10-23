@@ -30,7 +30,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT 
             a.*,
-            ua.earned_at,
+            ua.unlocked_at,
             ua.notified,
             CASE WHEN ua.id IS NOT NULL THEN TRUE ELSE FALSE END as is_earned,
             COALESCE(a.points, a.points_reward, 100) as points
@@ -38,7 +38,7 @@ try {
         LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
         ORDER BY 
             CASE WHEN ua.id IS NOT NULL THEN 0 ELSE 1 END,
-            ua.earned_at DESC,
+            ua.unlocked_at DESC,
             a.category,
             COALESCE(a.points, a.points_reward, 100) DESC,
             a.name ASC
@@ -115,8 +115,8 @@ try {
         }
         
         // Format dates
-        if ($achievement['earned_at']) {
-            $achievement['earned_at'] = date('Y-m-d H:i:s', strtotime($achievement['earned_at']));
+        if ($achievement['unlocked_at']) {
+            $achievement['unlocked_at'] = date('Y-m-d H:i:s', strtotime($achievement['unlocked_at']));
         }
         
         // Clean up fields

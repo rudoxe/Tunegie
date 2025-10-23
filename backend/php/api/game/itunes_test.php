@@ -81,3 +81,4 @@ echo json_encode([
     'resultCount' => $data['resultCount'] ?? 0
 ]);
 ?>
+

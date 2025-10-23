@@ -175,11 +175,11 @@ function getRecentAchievements($userId, $limit = 5) {
         $stmt = $pdo->prepare("
             SELECT 
                 a.*,
-                ua.earned_at
+                ua.unlocked_at
             FROM user_achievements ua
             JOIN achievements a ON ua.achievement_id = a.id
             WHERE ua.user_id = ?
-            ORDER BY ua.earned_at DESC
+            ORDER BY ua.unlocked_at DESC
             LIMIT ?
         ");
         $stmt->execute([$userId, $limit]);

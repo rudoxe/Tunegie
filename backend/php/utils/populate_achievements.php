@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS user_achievements (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     achievement_id INT NOT NULL,
-    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     notified BOOLEAN DEFAULT FALSE,
     UNIQUE KEY unique_user_achievement (user_id, achievement_id),
     FOREIGN KEY (achievement_id) REFERENCES achievements(id) ON DELETE CASCADE

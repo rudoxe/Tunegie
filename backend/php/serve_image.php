@@ -50,3 +50,4 @@ header('Cache-Control: public, max-age=31536000'); // Cache for 1 year
 
 readfile($fullPath);
 ?>
+

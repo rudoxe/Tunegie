@@ -155,3 +155,4 @@ try {
     sendError('Database error: ' . $e->getMessage(), 500);
 }
 ?>
+

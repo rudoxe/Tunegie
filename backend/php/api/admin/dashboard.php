@@ -103,7 +103,7 @@ function getAchievementStats($achievementSystem, $userId) {
                 COUNT(ua.id) as total_unlocked,
                 SUM(a.points) as total_points,
                 (SELECT COUNT(*) FROM achievements) as total_available,
-                COUNT(CASE WHEN ua.earned_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as unlocked_this_week
+                COUNT(CASE WHEN ua.unlocked_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as unlocked_this_week
             FROM user_achievements ua
             JOIN achievements a ON ua.achievement_id = a.id
             WHERE ua.user_id = ?
@@ -139,11 +139,11 @@ function getRecentAchievements($pdo, $userId, $limit = 5) {
         $stmt = $pdo->prepare("
             SELECT 
                 a.name as title, a.description, a.type as category, a.points,
-                ua.earned_at
+                ua.unlocked_at
             FROM user_achievements ua
             JOIN achievements a ON ua.achievement_id = a.id
             WHERE ua.user_id = ?
-            ORDER BY ua.earned_at DESC
+            ORDER BY ua.unlocked_at DESC
             LIMIT ?
         ");
         $stmt->execute([$userId, $limit]);

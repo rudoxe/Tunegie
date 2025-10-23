@@ -159,3 +159,4 @@ if ($method === 'GET') {
 } else {
     sendError('Method not allowed', 405);
 }
+

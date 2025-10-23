@@ -166,3 +166,4 @@ function getUserIdFromToken() {
     return $payload['user_id'] ?? null;
 }
 ?>
+

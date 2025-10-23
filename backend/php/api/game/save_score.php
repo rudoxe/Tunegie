@@ -179,3 +179,4 @@ function isPersonalBest($pdo, $userId, $score) {
     return $score >= $bestScore;
 }
 ?>
+

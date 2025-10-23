@@ -79,11 +79,11 @@ try {
             a.icon,
             a.category as color,
             a.points_reward as points,
-            ua.earned_at
+            ua.unlocked_at
         FROM user_achievements ua
         JOIN achievements a ON ua.achievement_id = a.id
         WHERE ua.user_id = ?
-        ORDER BY ua.earned_at DESC
+        ORDER BY ua.unlocked_at DESC
         LIMIT 3
     ');
     $stmt->execute([$userId]);
