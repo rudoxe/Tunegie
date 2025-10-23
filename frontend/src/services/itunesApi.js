@@ -1,7 +1,7 @@
 class iTunesApiService {
   constructor() {
     // Use PHP proxy to avoid CORS issues
-    const apiBase = process.env.NODE_ENV === 'production' ? '/backend/php/api' : 'http://localhost:8000/backend/php/api';
+    const apiBase = process.env.NODE_ENV === 'production' ? 'https://tunegie-production.up.railway.app/api' : 'http://localhost:8000/api';
     this.baseUrl = `${apiBase}/game/itunes_proxy.php`;
     this.testUrl = `${apiBase}/game/itunes_test.php`;
     this.countryCode = 'US';
