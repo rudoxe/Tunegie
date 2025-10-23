@@ -12,7 +12,7 @@
   "routes": [
     {
       "src": "/backend/(.*)",
-      "dest": "https://your-backend-url.railway.app/$1"
+      "dest": "https://tunegie-production.up.railway.app/$1"
     },
     {
       "src": "/(.*)",
