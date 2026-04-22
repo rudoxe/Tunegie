@@ -28,7 +28,7 @@ const ThemeSelector = () => {
       }
     };
     fetchPrivacy();
-  }, [token]);
+  }, [token, API_BASE]);
 
   const togglePrivacy = async () => {
     setSavingPrivacy(true);
