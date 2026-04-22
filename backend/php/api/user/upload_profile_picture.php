@@ -10,16 +10,12 @@ if ($method !== 'POST') {
 }
 
 // Get user from JWT token
-$headers = getallheaders();
-$authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
-
-if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+$jwt = getJWTFromHeader();
+if (!$jwt) {
     sendError('Authorization header missing or invalid', 401);
 }
 
-$token = $matches[1];
-$userData = verifyJWT($token);
-
+$userData = verifyJWT($jwt);
 if (!$userData) {
     sendError('Invalid or expired token', 401);
 }

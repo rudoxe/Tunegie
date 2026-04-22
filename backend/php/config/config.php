@@ -16,30 +16,8 @@ define('DB_PORT', getenv('MYSQLPORT') ?: '3306');
 // JWT Secret - use Railway environment variable or fallback
 define('JWT_SECRET', getenv('JWT_SECRET') ?: 'your-secret-key-change-this-in-production');
 
-// CORS headers - allow Railway domain and localhost
-$allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:8000',
-    'https://tunegie.vercel.app',
-    getenv('RAILWAY_STATIC_URL') ?: '',
-    getenv('FRONTEND_URL') ?: ''
-];
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, array_filter($allowedOrigins))) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-} else {
-    header('Access-Control-Allow-Origin: *');
-}
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-header('Access-Control-Allow-Credentials: true');
-header('Content-Type: application/json');
-
-// Handle preflight requests
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit(0);
-}
+// CORS headers are handled by middleware/cors.php which is included before config.php
+// Do not set CORS headers here to avoid duplicates
 
 // Database connection function
 function getDbConnection() {
@@ -65,12 +43,14 @@ function getDbConnection() {
 // Response helper functions
 function sendResponse($data, $statusCode = 200) {
     http_response_code($statusCode);
+    header('Content-Type: application/json');
     echo json_encode($data);
     exit;
 }
 
 function sendError($message, $statusCode = 400) {
     http_response_code($statusCode);
+    header('Content-Type: application/json');
     echo json_encode(['error' => $message]);
     exit;
 }
