@@ -7,7 +7,6 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Layout from "./Layout";
 import Home from "./pages/Home";
 import About from "./pages/About";
-import Contact from "./pages/Contact";
 import Game from "./pages/Game";
 import Leaderboard from "./pages/Leaderboard";
 import History from "./pages/History";
@@ -25,7 +24,6 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="about" element={<About />} />
-              <Route path="contact" element={<Contact />} />
               <Route path="game" element={<Game />} />
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="history" element={<History />} />

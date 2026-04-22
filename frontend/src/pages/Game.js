@@ -58,17 +58,17 @@ export default function Game() {
       let tracks = [];
       console.log(`🎵 Loading ${gameMode} tracks...`);
       
-      // Load more tracks than needed to avoid duplicates and have variety
-      const tracksToLoad = Math.max(gameData.totalQuestions * 3, 50); // Load 3x more tracks for variety
+      // Load enough tracks for the game with some extras for variety
+      const tracksToLoad = gameData.totalQuestions;
       
       if (gameMode === 'artist' && selectedOption) {
-        tracks = await itunesApiService.getTracksByArtist(selectedOption, tracksToLoad);
+        tracks = await itunesApiService.getTracksByArtist(selectedOption, tracksToLoad * 3);
         console.log(`🎤 Loaded ${tracks.length} tracks for artist: ${selectedOption}`);
       } else if (gameMode === 'genre' && selectedOption) {
-        tracks = await itunesApiService.getTracksByGenre(selectedOption, tracksToLoad);
+        tracks = await itunesApiService.getTracksByGenre(selectedOption, tracksToLoad * 3);
         console.log(`🎼 Loaded ${tracks.length} tracks for genre: ${selectedOption}`);
       } else {
-        tracks = await itunesApiService.getRandomTracksForGame(tracksToLoad);
+        tracks = await itunesApiService.getRandomTracksForGame(tracksToLoad * 3);
         console.log(`🎲 Loaded ${tracks.length} random tracks`);
       }
       

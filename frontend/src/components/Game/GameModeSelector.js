@@ -124,47 +124,47 @@ const GameModeSelector = ({ onSelectMode }) => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="max-w-4xl mx-auto py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-green-400 mb-6">
+    <div className="w-full max-w-4xl mx-auto py-6 sm:py-12">
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-400 mb-4 sm:mb-6">
           Choose Your Game Mode
         </h1>
-        <p className="text-lg md:text-xl text-green-200/80 max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg md:text-xl text-green-200/80 max-w-2xl mx-auto px-2">
           Select how you want to test your music knowledge!
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Random Mode */}
-        <div className="bg-gray-900/30 rounded-xl p-6 text-center">
-          <div className="text-4xl mb-4">🎲</div>
-          <h3 className="text-xl font-bold text-green-400 mb-3">Random Mix</h3>
-          <p className="text-green-200/80 mb-6">
+        <div className="bg-gray-900/30 rounded-xl p-5 sm:p-6 text-center">
+          <div className="text-4xl mb-3 sm:mb-4">🎲</div>
+          <h3 className="text-xl font-bold text-green-400 mb-2 sm:mb-3">Random Mix</h3>
+          <p className="text-green-200/80 mb-5 sm:mb-6 text-sm sm:text-base">
             Guess songs from a variety of popular artists and genres. Perfect for testing your overall music knowledge!
           </p>
           <button
             onClick={() => onSelectMode('random')}
-            className="bg-green-600 text-black px-6 py-3 rounded-xl font-bold hover:bg-green-500 transition w-full"
+            className="bg-green-600 text-black px-6 py-3 rounded-xl font-bold hover:bg-green-500 transition w-full text-sm sm:text-base"
           >
             Start Random Game
           </button>
         </div>
 
         {/* Artist Mode */}
-        <div className="bg-gray-900/30 rounded-xl p-6 text-center">
-          <div className="text-4xl mb-4">🎤</div>
-          <h3 className="text-xl font-bold text-green-400 mb-3">Artist Challenge</h3>
-          <p className="text-green-200/80 mb-6">
+        <div className="bg-gray-900/30 rounded-xl p-5 sm:p-6 text-center">
+          <div className="text-4xl mb-3 sm:mb-4">🎤</div>
+          <h3 className="text-xl font-bold text-green-400 mb-2 sm:mb-3">Artist Challenge</h3>
+          <p className="text-green-200/80 mb-5 sm:mb-6 text-sm sm:text-base">
             Focus on songs from your favorite artist. How well do you know their discography?
           </p>
           <ArtistSelector onSelect={(artist) => onSelectMode('artist', artist)} />
         </div>
 
         {/* Genre Mode */}
-        <div className="bg-gray-900/30 rounded-xl p-6 text-center">
-          <div className="text-4xl mb-4">🎼</div>
-          <h3 className="text-xl font-bold text-green-400 mb-3">Genre Expert</h3>
-          <p className="text-green-200/80 mb-6">
+        <div className="bg-gray-900/30 rounded-xl p-5 sm:p-6 text-center sm:col-span-2 lg:col-span-1">
+          <div className="text-4xl mb-3 sm:mb-4">🎼</div>
+          <h3 className="text-xl font-bold text-green-400 mb-2 sm:mb-3">Genre Expert</h3>
+          <p className="text-green-200/80 mb-5 sm:mb-6 text-sm sm:text-base">
             Test your knowledge of a specific music genre. From pop to rock to hip-hop!
           </p>
           <GenreSelector onSelect={(genre) => onSelectMode('genre', genre)} />
@@ -173,14 +173,14 @@ const GameModeSelector = ({ onSelectMode }) => {
 
       {/* Login Warning for Non-Authenticated Users */}
       {!isAuthenticated() && (
-        <div className="bg-yellow-600/20 border border-yellow-500/40 rounded-xl p-6 mb-6">
+        <div className="bg-yellow-600/20 border border-yellow-500/40 rounded-xl p-4 sm:p-6 mt-6 sm:mt-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="text-2xl">⚠️</div>
-            <h3 className="text-yellow-300 font-bold text-lg">Playing as Guest</h3>
+            <h3 className="text-yellow-300 font-bold text-base sm:text-lg">Playing as Guest</h3>
           </div>
           <div className="text-yellow-200/90 space-y-2">
-            <p className="font-medium">Your game stats will not be saved or appear on the leaderboard.</p>
-            <p className="text-sm">
+            <p className="font-medium text-sm sm:text-base">Your game stats will not be saved or appear on the leaderboard.</p>
+            <p className="text-xs sm:text-sm">
               <span className="font-medium">Sign in to:</span> Save your scores • Compete on leaderboards • Track your progress • View game history
             </p>
           </div>
@@ -201,10 +201,10 @@ const GameModeSelector = ({ onSelectMode }) => {
         </div>
       )}
 
-      <div className="text-center mt-8">
+      <div className="text-center mt-6 sm:mt-8">
         <a
           href="/"
-          className="text-green-400 hover:text-green-300 transition"
+          className="text-green-400 hover:text-green-300 transition text-sm sm:text-base"
         >
           ← Back to Home
         </a>

@@ -10,52 +10,53 @@ export default function Layout() {
   const { theme } = useTheme();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = () => {
     setAuthMode('login');
     setShowAuthModal(true);
+    setMobileMenuOpen(false);
   };
 
   const handleRegister = () => {
     setAuthMode('register');
     setShowAuthModal(true);
+    setMobileMenuOpen(false);
   };
 
   const handleLogout = () => {
     logout();
+    setMobileMenuOpen(false);
   };
 
   const handleProfileClick = () => {
     navigate('/profile');
+    setMobileMenuOpen(false);
   };
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${theme.background} text-${theme.textMuted} flex flex-col transition-all duration-500`}>
       <header className={`sticky top-0 z-50 backdrop-blur-lg bg-${theme.surface}/80 border-b border-${theme.border}/50`}>
-        <div className="flex items-center justify-between px-6 py-3">
-          <h1 className="text-3xl font-bold transition-colors duration-300 py-1 px-1">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3">
+          {/* Logo */}
+          <h1 className="text-2xl sm:text-3xl font-bold transition-colors duration-300 py-1 px-1">
             <Link to="/" className="block">
               <span className={`hover:scale-105 transition-all duration-500 font-extrabold text-white cursor-pointer inline-block tracking-wide relative group overflow-visible`}>
-                {/* Main visible text */}
                 <span className={`relative z-10 group-hover:text-${theme.primary} transition-colors duration-300 drop-shadow-lg`}>Tunegie</span>
-                {/* Background glow effect */}
                 <span className={`absolute inset-0 text-${theme.primary} opacity-0 group-hover:opacity-40 transition-opacity duration-500 blur-sm`}>Tunegie</span>
-                {/* Moving shimmer effect */}
                 <div className="absolute inset-0 overflow-hidden rounded-lg">
                   <span className={`absolute inset-y-0 w-8 bg-gradient-to-r from-transparent via-${theme.accent} to-transparent opacity-60 logo-shimmer-effect`}></span>
                 </div>
               </span>
             </Link>
           </h1>
-          <div className="flex items-center gap-6">
+
+          {/* Desktop Nav */}
+          <div className="flex items-center gap-4 lg:gap-6">
             <nav className={`hidden lg:flex gap-6 text-${theme.textNav} items-center`}>
               <Link to="/about" className={`px-2 py-1 rounded-lg hover:bg-${theme.primary}/10 hover:text-${theme.primary} transition-all duration-200 font-medium relative group text-sm`}>
                 <span>About</span>
-                <div className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-${theme.primary} to-${theme.accent} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200`}></div>
-              </Link>
-              <Link to="/contact" className={`px-2 py-1 rounded-lg hover:bg-${theme.primary}/10 hover:text-${theme.primary} transition-all duration-200 font-medium relative group text-sm`}>
-                <span>Contact</span>
                 <div className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-${theme.primary} to-${theme.accent} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200`}></div>
               </Link>
               <Link to="/game" className={`px-3 py-1 rounded-lg bg-gradient-to-r from-${theme.primary} to-${theme.accent} text-white font-semibold hover:scale-105 hover:${theme.glow} transition-all duration-200 shadow-lg text-sm`}>
@@ -73,11 +74,11 @@ export default function Layout() {
               )}
             </nav>
             
-            <div className="w-64 hidden md:block">
+            <div className="w-48 xl:w-64 hidden md:block">
               <UserSearch />
             </div>
             
-            <div className={`flex items-center gap-4 border-l border-${theme.border}/30 pl-4`}>
+            <div className={`hidden lg:flex items-center gap-4 border-l border-${theme.border}/30 pl-4`}>
               {loading ? (
                 <div className={`text-${theme.text} animate-pulse flex items-center gap-2`}>
                   <div className={`w-4 h-4 border-2 border-${theme.primary} border-t-transparent rounded-full animate-spin`}></div>
@@ -85,7 +86,7 @@ export default function Layout() {
                 </div>
               ) : isAuthenticated() ? (
                 <div className="flex items-center gap-4">
-                  <div className={`text-${theme.text} font-medium hidden sm:block`}>
+                  <div className={`text-${theme.text} font-medium hidden xl:block`}>
                     Welcome, {user?.username}!
                   </div>
                   <div 
@@ -140,12 +141,106 @@ export default function Layout() {
                 </div>
               )}
             </div>
+
+            {/* Mobile: profile avatar + hamburger */}
+            <div className="flex items-center gap-2 lg:hidden">
+              {isAuthenticated() && (
+                <div 
+                  onClick={handleProfileClick}
+                  className={`w-9 h-9 rounded-full cursor-pointer overflow-hidden flex items-center justify-center bg-gradient-to-br from-${theme.primary}/20 to-${theme.accent}/20 border-2 border-${theme.primary}/50`}
+                >
+                  {user?.profile_picture ? (
+                    <img
+                      src={`${API_BASE}/api/serve_image.php?path=${user.profile_picture}`}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <svg className={`w-5 h-5 text-${theme.primary}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() => setMobileMenuOpen(prev => !prev)}
+                className={`p-2 rounded-lg text-${theme.text} hover:bg-${theme.primary}/10 transition-colors`}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className={`lg:hidden border-t border-${theme.border}/50 bg-${theme.surface}/95 backdrop-blur-lg px-4 py-4 space-y-3`}>
+            {/* Search */}
+            <div className="pb-2">
+              <UserSearch />
+            </div>
+
+            {/* Nav Links */}
+            <Link to="/about" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-${theme.text} hover:bg-${theme.primary}/10 hover:text-${theme.primary} transition-all font-medium`}>
+              <span>📖</span> About
+            </Link>
+            <Link to="/game" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg bg-gradient-to-r from-${theme.primary} to-${theme.accent} text-white font-semibold transition-all`}>
+              <span>🎵</span> Play Now
+            </Link>
+            <Link to="/leaderboard" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-${theme.text} hover:bg-${theme.primary}/10 hover:text-${theme.primary} transition-all font-medium`}>
+              <span>🏆</span> Leaderboard
+            </Link>
+            {isAuthenticated() && (
+              <Link to="/history" onClick={() => setMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-${theme.text} hover:bg-${theme.primary}/10 hover:text-${theme.primary} transition-all font-medium`}>
+                <span>📜</span> History
+              </Link>
+            )}
+
+            {/* Auth */}
+            <div className={`pt-2 border-t border-${theme.border}/30`}>
+              {loading ? null : isAuthenticated() ? (
+                <div className="space-y-2">
+                  <p className={`text-${theme.textMuted} text-sm px-3`}>Signed in as <span className={`text-${theme.primary} font-semibold`}>{user?.username}</span></p>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleLogin}
+                    className={`flex-1 bg-gradient-to-r from-${theme.primary} to-${theme.accent} text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all`}
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={handleRegister}
+                    className={`flex-1 border-2 border-${theme.primary} text-${theme.primary} px-3 py-2 rounded-lg text-sm font-medium transition-all`}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Render matched child route */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6">
         <Outlet />
       </main>
 

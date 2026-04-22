@@ -3,10 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // Loading Screen Component
 export const LoadingScreen = () => (
-  <div className="text-center py-20">
+  <div className="text-center py-12 sm:py-20 px-4">
     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mb-6"></div>
-    <h2 className="text-2xl font-semibold text-green-400 mb-4">Loading Tunegie...</h2>
-    <p className="text-green-200 text-opacity-80">
+    <h2 className="text-xl sm:text-2xl font-semibold text-green-400 mb-4">Loading Tunegie...</h2>
+    <p className="text-green-200 text-opacity-80 text-sm sm:text-base">
       Connecting to iTunes API and loading real songs with previews...
     </p>
   </div>
@@ -69,34 +69,34 @@ export const ReadyScreen = ({ gameData, onStart, difficulty, onDifficultyChange 
   ];
 
   return (
-    <div className="text-center py-20 max-w-3xl mx-auto">
-      <div className="text-6xl mb-6">{modeInfo.icon}</div>
-      <h2 className="text-4xl font-bold text-green-400 mb-6">Ready to Play!</h2>
-      <h3 className="text-2xl font-semibold text-green-300 mb-4">{modeInfo.title}</h3>
-      <p className="text-lg text-green-200 text-opacity-80 mb-8">
+    <div className="text-center py-8 sm:py-20 max-w-3xl mx-auto px-4 w-full">
+      <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">{modeInfo.icon}</div>
+      <h2 className="text-3xl sm:text-4xl font-bold text-green-400 mb-4 sm:mb-6">Ready to Play!</h2>
+      <h3 className="text-xl sm:text-2xl font-semibold text-green-300 mb-3 sm:mb-4">{modeInfo.title}</h3>
+      <p className="text-base sm:text-lg text-green-200 text-opacity-80 mb-6 sm:mb-8">
         {modeInfo.desc} We've loaded {gameData.tracks.length} tracks for your guessing challenge.
       </p>
       
       {/* Difficulty Selection */}
-      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-6">
-        <h3 className="text-xl font-semibold text-green-400 mb-4">Choose Difficulty:</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-green-400 mb-4">Choose Difficulty:</h3>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
           {difficultyOptions.map((option) => (
             <button
               key={option.id}
               onClick={() => onDifficultyChange(option.id)}
-              className={`p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+              className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
                 difficulty === option.id
                   ? `bg-gradient-to-br ${option.color} border-white text-white shadow-lg`
                   : 'bg-black bg-opacity-50 border-gray-600 text-green-300 hover:border-green-500'
               }`}
             >
-              <div className="text-3xl mb-2">{option.icon}</div>
-              <div className="font-bold text-lg mb-1">{option.label}</div>
-              <div className="text-sm opacity-90">
-                {option.duration} second{option.duration !== 1 ? 's' : ''}
+              <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">{option.icon}</div>
+              <div className="font-bold text-sm sm:text-lg mb-0.5 sm:mb-1">{option.label}</div>
+              <div className="text-xs sm:text-sm opacity-90">
+                {option.duration}s
               </div>
-              <div className="text-xs opacity-75 mt-1">
+              <div className="text-xs opacity-75 mt-0.5 sm:mt-1 hidden sm:block">
                 {option.id === 'easy' && 'More time to think'}
                 {option.id === 'medium' && 'Balanced challenge'}
                 {option.id === 'hard' && 'Quick reflexes needed'}
@@ -105,26 +105,25 @@ export const ReadyScreen = ({ gameData, onStart, difficulty, onDifficultyChange 
           ))}
         </div>
         <div className="text-center">
-          <span className="text-green-200 text-opacity-60 text-sm">
+          <span className="text-green-200 text-opacity-60 text-xs sm:text-sm">
             Selected: {difficultyOptions.find(d => d.id === difficulty)?.duration}s snippets
           </span>
         </div>
       </div>
       
-      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-8">
-        <h3 className="text-xl font-semibold text-green-400 mb-4">How to Play:</h3>
-        <div className="space-y-3 text-green-200 text-opacity-80">
+      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+        <h3 className="text-lg sm:text-xl font-semibold text-green-400 mb-3 sm:mb-4">How to Play:</h3>
+        <div className="space-y-2 text-green-200 text-opacity-80 text-sm sm:text-base">
           <p>Listen to {difficultyOptions.find(d => d.id === difficulty)?.duration}-second audio snippets</p>
           <p>Guess the song title or artist name</p>
           <p>No time limit - replay snippets anytime!</p>
           <p>Score points for each correct guess</p>
-          <p>See your final score at the end</p>
         </div>
       </div>
 
       <button
         onClick={onStart}
-        className="bg-green-600 text-black px-8 py-4 rounded-2xl font-bold text-xl shadow-lg hover:bg-green-500 transition"
+        className="bg-green-600 text-black px-8 py-4 rounded-2xl font-bold text-lg sm:text-xl shadow-lg hover:bg-green-500 transition w-full sm:w-auto"
       >
         Start Playing
       </button>
@@ -148,16 +147,16 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
   const accuracy = Math.round((correctAnswers / gameData.totalQuestions) * 100);
 
   return (
-    <div className="text-center py-20 max-w-2xl mx-auto">
-      <div className="text-6xl mb-6">🏆</div>
-      <h2 className="text-4xl font-bold text-green-400 mb-6">Game Complete!</h2>
-      <p className="text-2xl text-green-300 mb-8">
+    <div className="text-center py-8 sm:py-20 max-w-2xl mx-auto px-4 w-full">
+      <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">🏆</div>
+      <h2 className="text-3xl sm:text-4xl font-bold text-green-400 mb-4 sm:mb-6">Game Complete!</h2>
+      <p className="text-xl sm:text-2xl text-green-300 mb-6 sm:mb-8">
         Final Score: {gameData.score} points
       </p>
       
-      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-6 mb-8">
-        <h3 className="text-xl font-semibold text-green-400 mb-4">Your Performance:</h3>
-        <div className="text-green-200 text-opacity-80">
+      <div className="bg-gray-900 bg-opacity-30 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+        <h3 className="text-lg sm:text-xl font-semibold text-green-400 mb-4">Your Performance:</h3>
+        <div className="text-green-200 text-opacity-80 text-sm sm:text-base">
           <p>Correct Answers: {correctAnswers} out of {gameData.totalQuestions}</p>
           <p>Accuracy: {accuracy}%</p>
           <p className="mt-2">{getPerformanceMessage()}</p>
@@ -167,11 +166,11 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
               <p className="text-green-300 text-sm">
                 ✅ Your score has been saved to the leaderboard!
               </p>
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap justify-center gap-2">
                 <a href="/leaderboard" className="text-green-400 hover:text-green-300 text-sm">
                   View Leaderboard →
                 </a>
-                <span className="mx-2 text-green-200 text-opacity-40">•</span>
+                <span className="mx-2 text-green-200 text-opacity-40 hidden sm:inline">•</span>
                 <a href="/history" className="text-green-400 hover:text-green-300 text-sm">
                   View Your History →
                 </a>
@@ -186,9 +185,9 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
                 <p className="text-yellow-300 font-medium text-sm">Score Not Saved - Playing as Guest</p>
               </div>
               <p className="text-yellow-200 text-opacity-90 text-sm mb-3">
-                Your score of <strong>{gameData.score} points</strong> ({correctAnswers}/{gameData.totalQuestions} correct) won't appear on the leaderboard or in your game history.
+                Your score of <strong>{gameData.score} points</strong> ({correctAnswers}/{gameData.totalQuestions} correct) won't appear on the leaderboard.
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center">
                 <button
                   onClick={() => window.location.href = '/login'}
                   className="bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded text-xs font-medium transition"
@@ -207,7 +206,7 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
         </div>
       </div>
 
-      <div className="flex gap-4 justify-center">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
         <button
           onClick={onRestart}
           className="bg-green-600 text-black px-6 py-3 rounded-xl font-bold hover:bg-green-500 transition"
@@ -216,7 +215,7 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
         </button>
         <a
           href="/"
-          className="bg-gray-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-500 transition"
+          className="bg-gray-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-500 transition text-center"
         >
           Back to Home
         </a>

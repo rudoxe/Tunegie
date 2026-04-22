@@ -208,16 +208,19 @@ class iTunesApiService {
           console.warn(`❌ Search failed for term: ${term}`, error);
         }
         
-        // If we have enough tracks, break early
-        if (allTracks.length >= count * 2) {
-          console.log(`🎯 Early break - have enough tracks (${allTracks.length})`);
+        // Only break early if we have well more than enough unique tracks
+        const uniqueSoFar = allTracks.filter((track, index, self) =>
+          index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
+        );
+        if (uniqueSoFar.length >= count * 3) {
+          console.log(`🎯 Early break - have enough tracks (${uniqueSoFar.length} unique)`);
           break;
         }
       }
 
       // Remove duplicates based on track ID
       const uniqueTracks = allTracks.filter((track, index, self) =>
-        index === self.findIndex(t => t.trackId === track.trackId)
+        index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
       );
 
       console.log(`🎵 Found ${uniqueTracks.length} unique tracks total`);
@@ -261,7 +264,7 @@ class iTunesApiService {
     // Search each term for the genre
     for (const term of searchTerms) {
       try {
-        const tracks = await this.searchTracks(term, 40);
+        const tracks = await this.searchTracks(term, 50);
         if (tracks && tracks.length > 0) {
           allTracks.push(...tracks);
           console.log(`✅ Found ${tracks.length} tracks for genre term: ${term}`);
@@ -275,16 +278,19 @@ class iTunesApiService {
         console.warn(`❌ Genre search failed for term: ${term}`, error);
       }
       
-      // If we have enough tracks, break early
-      if (allTracks.length >= count * 2) {
-        console.log(`🎯 Early break - have enough genre tracks (${allTracks.length})`);
+      // Only break early if we have well more than enough unique tracks
+      const uniqueSoFar = allTracks.filter((track, index, self) =>
+        index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
+      );
+      if (uniqueSoFar.length >= count * 3) {
+        console.log(`🎯 Early break - have enough genre tracks (${uniqueSoFar.length} unique)`);
         break;
       }
     }
 
     // Remove duplicates
     const uniqueTracks = allTracks.filter((track, index, self) =>
-      index === self.findIndex(t => t.trackId === track.trackId)
+      index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
     );
 
     console.log(`🎵 Found ${uniqueTracks.length} unique tracks for genre: ${genre}`);
