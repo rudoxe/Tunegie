@@ -4,7 +4,7 @@
   },
   "deploy": {
     "startCommand": "php -S 0.0.0.0:$PORT -t php php/router.php",
-    "healthcheckPath": "/api/game/itunes_test.php",
+    "healthcheckPath": "/api/health.php",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
