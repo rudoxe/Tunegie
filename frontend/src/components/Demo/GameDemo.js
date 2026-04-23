@@ -130,10 +130,10 @@ const GameDemo = () => {
   const currentStats = getCurrentStats();
 
   return (
-    <div className="bg-black/50 rounded-lg p-6 border border-green-500/30">
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-green-400 mb-2">🎮 Demo Game</h3>
-        <p className="text-green-200/80 mb-4">
+    <div className="bg-black/50 rounded-lg p-4 sm:p-6 border border-green-500/30">
+      <div className="text-center mb-4 sm:mb-6">
+        <h3 className="text-xl sm:text-2xl font-bold text-green-400 mb-2">🎮 Demo Game</h3>
+        <p className="text-green-200/80 text-sm mb-4">
           Test the leaderboard system with a simulated game
         </p>
         
@@ -141,27 +141,27 @@ const GameDemo = () => {
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           {[
             { value: 'random', icon: '🎲', name: 'Random Mix' },
-            { value: 'artist', icon: '🎤', name: 'Artist Challenge' },
-            { value: 'genre', icon: '🎼', name: 'Genre Expert' }
+            { value: 'artist', icon: '🎤', name: 'Artist' },
+            { value: 'genre', icon: '🎼', name: 'Genre' }
           ].map((mode) => (
             <button
               key={mode.value}
               onClick={() => setSelectedMode(mode.value)}
               disabled={isPlaying}
-              className={`px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+              className={`px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-1.5 text-sm ${
                 selectedMode === mode.value
                   ? 'bg-green-600 text-black'
                   : 'bg-gray-700 text-green-300 hover:bg-gray-600'
               } ${isPlaying ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span>{mode.icon}</span>
-              <span className="hidden sm:inline">{mode.name}</span>
+              <span>{mode.name}</span>
             </button>
           ))}
         </div>
         
         {!isAuthenticated() && (
-          <p className="text-yellow-300 text-sm mt-2">
+          <p className="text-yellow-300 text-xs sm:text-sm mt-2">
             ⚠️ Sign in to save your demo scores to the leaderboard!
           </p>
         )}

@@ -84,25 +84,25 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 max-w-6xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-green-400 mb-2">🏆 Leaderboard</h1>
-        <p className="text-green-200/80">See how you rank among other players</p>
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-green-400 mb-2">🏆 Leaderboard</h1>
+        <p className="text-green-200/80 text-sm sm:text-base">See how you rank among other players</p>
       </div>
 
       {/* Authentication Prompt */}
       {!isAuthenticated() && (
         <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-yellow-300 font-medium">Want to see your stats?</h3>
-              <p className="text-yellow-200/80 text-sm mt-1">
+              <h3 className="text-yellow-300 font-medium text-sm sm:text-base">Want to see your stats?</h3>
+              <p className="text-yellow-200/80 text-xs sm:text-sm mt-1">
                 Sign in to track your progress and compete on the leaderboard!
               </p>
             </div>
             <button
               onClick={() => setShowAuthModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors text-sm self-start sm:self-auto whitespace-nowrap"
             >
               Sign In
             </button>
@@ -111,7 +111,7 @@ const Leaderboard = () => {
       )}
 
       {/* Demo Game Section */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <GameDemo />
       </div>
 
@@ -121,12 +121,12 @@ const Leaderboard = () => {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
         {['top_scores', 'accuracy', 'recent'].map((tab) => (
           <button
             key={tab}
             onClick={() => handleTabChange(tab)}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded-md font-medium transition-colors text-sm sm:text-base ${
               activeTab === tab
                 ? 'bg-green-600 text-white'
                 : 'bg-gray-700 text-green-300 hover:bg-gray-600'
@@ -138,26 +138,25 @@ const Leaderboard = () => {
       </div>
 
       {/* Game Mode Filter */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        <label className="text-green-300 font-medium">Game Mode:</label>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+        <label className="text-green-300 font-medium text-sm sm:text-base">Mode:</label>
         <div className="flex flex-wrap gap-2">
           {[
-            { value: 'random', label: '🎲 Random Mix', icon: '🎲' },
-            { value: 'artist', label: '🎤 Artist Challenge', icon: '🎤' },
-            { value: 'genre', label: '🎼 Genre Expert', icon: '🎼' }
+            { value: 'random', label: 'Random Mix', icon: '🎲' },
+            { value: 'artist', label: 'Artist', icon: '🎤' },
+            { value: 'genre', label: 'Genre', icon: '🎼' }
           ].map((mode) => (
             <button
               key={mode.value}
               onClick={() => setGameMode(mode.value)}
-              className={`px-3 py-2 rounded-md font-medium transition-colors flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 text-sm ${
                 gameMode === mode.value
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-700 text-green-300 hover:bg-gray-600'
               }`}
             >
               <span>{mode.icon}</span>
-              <span className="hidden sm:inline">{mode.label.split(' ').slice(1).join(' ')}</span>
-              <span className="sm:hidden">{mode.label.split(' ')[0]}</span>
+              <span>{mode.label}</span>
             </button>
           ))}
         </div>
@@ -166,7 +165,7 @@ const Leaderboard = () => {
       {/* Error State */}
       {error && (
         <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-4 mb-6">
-          <p className="text-red-300">❌ {error}</p>
+          <p className="text-red-300 text-sm">❌ {error}</p>
           <button
             onClick={fetchLeaderboard}
             className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm"
