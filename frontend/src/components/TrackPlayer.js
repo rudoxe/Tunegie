@@ -8,6 +8,7 @@ const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
   const [audioReady, setAudioReady] = useState(false);
   const [audioError, setAudioError] = useState(null);
   const [previewInfo, setPreviewInfo] = useState(null);
+  const isPlayingRef = useRef(false); // ref so animation frame closure can read current value
   
   // Get snippet duration based on difficulty
   const getSnippetDuration = (difficulty) => {
@@ -115,6 +116,7 @@ const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
 
     try {
       setIsPlaying(true);
+      isPlayingRef.current = true;
       setHasPlayed(true);
       setCurrentTime(0);
       
@@ -157,7 +159,7 @@ const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
       // Track progress with more precise timing
       const startTime = performance.now();
       const trackProgress = () => {
-        if (!isPlaying) return;
+        if (!isPlayingRef.current) return;
         
         const elapsed = (performance.now() - startTime) / 1000;
         
@@ -191,6 +193,7 @@ const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
 
   const stopSnippet = () => {
     setIsPlaying(false);
+    isPlayingRef.current = false;
     
     // Stop audio playback
     if (audioRef.current && !audioRef.current.paused) {

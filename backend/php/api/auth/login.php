@@ -30,14 +30,10 @@ try {
 
     $token = generateJWT($user['id'], $user['email']);
     
-    // Initialize achievement system and update login streak
-    $achievementSystem = new AchievementSystem($pdo);
-    
-    // Update login streak (this will create a record if none exists)
+    // Update login streak only
     $streakResult = $achievementSystem->updateDailyStreak($user['id'], 'login');
-    
-    // Also check if user has played any games today, if not, initialize play streak
-    $playStreakResult = $achievementSystem->updateDailyStreak($user['id'], 'play_game');
+
+    // Do NOT update play_game streak on login — that only updates when a game is completed
 
     sendResponse([
         'message' => 'Login successful',
@@ -52,10 +48,6 @@ try {
             'login_streak' => [
                 'current_streak' => $streakResult['current_streak'],
                 'longest_streak' => $streakResult['longest_streak']
-            ],
-            'play_streak' => [
-                'current_streak' => $playStreakResult['current_streak'],
-                'longest_streak' => $playStreakResult['longest_streak']
             ]
         ]
     ]);

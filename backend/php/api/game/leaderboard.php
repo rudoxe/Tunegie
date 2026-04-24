@@ -24,7 +24,7 @@ try {
     
     switch ($type) {
         case 'top_scores':
-            // Get top scores by score
+            // Best score per user — one entry per player
             $stmt = $pdo->prepare('
                 SELECT 
                     l.username,
@@ -37,16 +37,22 @@ try {
                     u.id as user_id
                 FROM leaderboards l
                 JOIN users u ON l.user_id = u.id
+                INNER JOIN (
+                    SELECT user_id, MAX(score) as max_score
+                    FROM leaderboards
+                    WHERE game_mode = ?
+                    GROUP BY user_id
+                ) best ON l.user_id = best.user_id AND l.score = best.max_score
                 WHERE l.game_mode = ?
                 ORDER BY l.score DESC, l.accuracy_percentage DESC, l.achieved_at ASC
                 LIMIT ?
             ');
-            $stmt->execute([$gameMode, $limit]);
+            $stmt->execute([$gameMode, $gameMode, $limit]);
             $data = $stmt->fetchAll();
             break;
             
         case 'accuracy':
-            // Get top scores by accuracy
+            // Best accuracy per user — one entry per player
             $stmt = $pdo->prepare('
                 SELECT 
                     l.username,
@@ -59,16 +65,22 @@ try {
                     u.id as user_id
                 FROM leaderboards l
                 JOIN users u ON l.user_id = u.id
+                INNER JOIN (
+                    SELECT user_id, MAX(accuracy_percentage) as max_acc
+                    FROM leaderboards
+                    WHERE game_mode = ? AND total_rounds >= 5
+                    GROUP BY user_id
+                ) best ON l.user_id = best.user_id AND l.accuracy_percentage = best.max_acc
                 WHERE l.game_mode = ? AND l.total_rounds >= 5
                 ORDER BY l.accuracy_percentage DESC, l.score DESC, l.achieved_at ASC
                 LIMIT ?
             ');
-            $stmt->execute([$gameMode, $limit]);
+            $stmt->execute([$gameMode, $gameMode, $limit]);
             $data = $stmt->fetchAll();
             break;
             
         case 'recent':
-            // Get recent games
+            // Most recent game per user — one entry per player
             $stmt = $pdo->prepare('
                 SELECT 
                     l.username,
@@ -81,11 +93,17 @@ try {
                     u.id as user_id
                 FROM leaderboards l
                 JOIN users u ON l.user_id = u.id
+                INNER JOIN (
+                    SELECT user_id, MAX(achieved_at) as latest
+                    FROM leaderboards
+                    WHERE game_mode = ?
+                    GROUP BY user_id
+                ) latest ON l.user_id = latest.user_id AND l.achieved_at = latest.latest
                 WHERE l.game_mode = ?
                 ORDER BY l.achieved_at DESC
                 LIMIT ?
             ');
-            $stmt->execute([$gameMode, $limit]);
+            $stmt->execute([$gameMode, $gameMode, $limit]);
             $data = $stmt->fetchAll();
             break;
             

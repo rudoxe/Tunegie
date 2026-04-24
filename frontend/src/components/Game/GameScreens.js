@@ -132,7 +132,7 @@ export const ReadyScreen = ({ gameData, onStart, difficulty, onDifficultyChange 
 };
 
 // Finished Screen Component
-export const FinishedScreen = ({ gameData, onRestart }) => {
+export const FinishedScreen = ({ gameData, onRestart, onShowAuth }) => {
   const { isAuthenticated } = useAuth();
 
   const getPerformanceMessage = () => {
@@ -182,23 +182,26 @@ export const FinishedScreen = ({ gameData, onRestart }) => {
             <div className="mt-4 p-4 bg-yellow-600 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <div className="text-lg">⚠️</div>
-                <p className="text-yellow-300 font-medium text-sm">Score Not Saved - Playing as Guest</p>
+                <p className="text-yellow-300 font-medium text-sm">Playing as Guest</p>
               </div>
-              <p className="text-yellow-200 text-opacity-90 text-sm mb-3">
-                Your score of <strong>{gameData.score} points</strong> ({correctAnswers}/{gameData.totalQuestions} correct) won't appear on the leaderboard.
+              <p className="text-yellow-200 text-opacity-90 text-xs mb-1 font-semibold">
+                Your game stats will not be saved or appear on the leaderboard.
+              </p>
+              <p className="text-yellow-200 text-opacity-70 text-xs mb-3">
+                Sign in to: Save your scores • Compete on leaderboards • Track your progress • View game history
               </p>
               <div className="flex gap-2 justify-center">
                 <button
-                  onClick={() => window.location.href = '/login'}
-                  className="bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded text-xs font-medium transition"
+                  onClick={() => onShowAuth && onShowAuth('login')}
+                  className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg text-sm font-bold transition"
                 >
-                  Sign In
+                  Sign In Now
                 </button>
                 <button
-                  onClick={() => window.location.href = '/register'}
-                  className="border border-yellow-500 text-yellow-300 hover:bg-yellow-500 hover:bg-opacity-10 px-3 py-1 rounded text-xs font-medium transition"
+                  onClick={() => onShowAuth && onShowAuth('register')}
+                  className="border-2 border-yellow-500 text-yellow-300 hover:bg-yellow-500 hover:text-black px-4 py-2 rounded-lg text-sm font-bold transition"
                 >
-                  Register
+                  Create Account
                 </button>
               </div>
             </div>

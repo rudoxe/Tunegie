@@ -7,6 +7,7 @@ import { validateGuess } from '../utils/gameUtils';
 // Import organized components
 import GameModeSelector from '../components/Game/GameModeSelector';
 import GameScreen from '../components/Game/GameScreen';
+import AuthModal from '../components/Auth/AuthModal';
 import { LoadingScreen, ErrorScreen, ReadyScreen, FinishedScreen } from '../components/Game/GameScreens';
 
 export default function Game() {
@@ -33,6 +34,8 @@ export default function Game() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [cheatMode, setCheatMode] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('login');
 
   // Initialize game - start with mode selection
   useEffect(() => {
@@ -220,6 +223,11 @@ export default function Game() {
     setGameState('selectMode');
   };
   
+  const handleShowAuth = (mode = 'login') => {
+    setAuthModalMode(mode);
+    setShowAuthModal(true);
+  };
+  
   const handleDifficultyChange = (newDifficulty) => {
     setDifficulty(newDifficulty);
     setGameData(prev => ({
@@ -266,9 +274,15 @@ export default function Game() {
       {gameState === 'finished' && (
         <FinishedScreen 
           gameData={gameData} 
-          onRestart={restartGame} 
+          onRestart={restartGame}
+          onShowAuth={handleShowAuth}
         />
       )}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authModalMode}
+      />
     </div>
   );
 }
