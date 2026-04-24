@@ -30,10 +30,9 @@ try {
 
     $token = generateJWT($user['id'], $user['email']);
     
-    // Update login streak only
+    // Update login streak only — play_game streak only updates when a game is completed
+    $achievementSystem = new AchievementSystem($pdo);
     $streakResult = $achievementSystem->updateDailyStreak($user['id'], 'login');
-
-    // Do NOT update play_game streak on login — that only updates when a game is completed
 
     sendResponse([
         'message' => 'Login successful',
