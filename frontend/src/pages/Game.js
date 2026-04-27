@@ -47,8 +47,6 @@ export default function Game() {
     setErrorMessage('');
 
     try {
-      console.log(`🎮 Initializing Tunegie Game (${gameMode} mode)...`);
-      console.log('🎵 Using iTunes API for real music tracks');
       
       // Test iTunes API connection
       const connected = await itunesApiService.testConnection();
@@ -59,20 +57,16 @@ export default function Game() {
 
       // Load tracks based on game mode
       let tracks = [];
-      console.log(`🎵 Loading ${gameMode} tracks...`);
       
       // Load enough tracks for the game with some extras for variety
       const tracksToLoad = gameData.totalQuestions;
       
       if (gameMode === 'artist' && selectedOption) {
         tracks = await itunesApiService.getTracksByArtist(selectedOption, tracksToLoad * 3);
-        console.log(`🎤 Loaded ${tracks.length} tracks for artist: ${selectedOption}`);
       } else if (gameMode === 'genre' && selectedOption) {
         tracks = await itunesApiService.getTracksByGenre(selectedOption, tracksToLoad * 3);
-        console.log(`🎼 Loaded ${tracks.length} tracks for genre: ${selectedOption}`);
       } else {
         tracks = await itunesApiService.getRandomTracksForGame(tracksToLoad * 3);
-        console.log(`🎲 Loaded ${tracks.length} random tracks`);
       }
       
       if (tracks.length === 0) {
@@ -85,8 +79,6 @@ export default function Game() {
       // Select only the number we need for the game (but keep extras as backups)
       const gameTracks = shuffledTracks.slice(0, gameData.totalQuestions);
       const backupTracks = shuffledTracks.slice(gameData.totalQuestions);
-      
-      console.log(`✅ Selected ${gameTracks.length} tracks for the game (${backupTracks.length} backup tracks available)`);
       
       setGameData(prev => ({
         ...prev,
@@ -197,8 +189,6 @@ export default function Game() {
     setUserGuess('');
     setShowAnswer(false);
     setCheatMode(false); // Auto-disable cheat mode on next question
-    
-    console.log(`🎵 Playing track ${nextIndex + 1}/${gameData.totalQuestions}: "${nextTrack?.title}" by ${nextTrack?.artists?.[0]?.name}`);
   };
 
   const restartGame = () => {

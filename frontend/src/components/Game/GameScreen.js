@@ -195,7 +195,7 @@ const GameScreen = ({
             <TrackPlayer 
               track={currentTrack} 
               difficulty={difficulty}
-              onSnippetEnd={() => console.log('Snippet finished playing')}
+              onSnippetEnd={() => {/* Snippet finished */}}
             />
             
             {/* Track Info Grid */}

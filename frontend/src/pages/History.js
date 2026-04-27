@@ -196,58 +196,6 @@ const History = () => {
         </div>
       )}
 
-      {/* Performance Trend */}
-      {userStats.performance_trend && (
-        <div className={`bg-${theme.cardBg} rounded-xl p-6 mb-8 border border-${theme.accent}/20 animate-slide-in`}>
-          <h2 className={`text-2xl font-bold text-${theme.accent} mb-4`}>Performance Trend</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className={`bg-${theme.bgDark} rounded-lg p-4 transition-all duration-300 hover:glow`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-${theme.text}`}>Recent Average Score</span>
-                <span className={`text-lg font-bold text-${theme.accent}`}>
-                  {userStats.performance_trend.recent_avg_score}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-${theme.textMuted} text-sm`}>Trend:</span>
-                <span className={`text-sm font-semibold ${
-                  userStats.performance_trend.score_improvement_percentage > 0 
-                    ? `text-${theme.accent}` 
-                    : userStats.performance_trend.score_improvement_percentage < 0 
-                    ? `text-${theme.accent}` 
-                    : `text-${theme.textMuted}`
-                }`}>
-                  {userStats.performance_trend.score_improvement_percentage > 0 ? '↗' : 
-                   userStats.performance_trend.score_improvement_percentage < 0 ? '↘' : '→'}
-                  {Math.abs(userStats.performance_trend.score_improvement_percentage)}%
-                </span>
-              </div>
-            </div>
-            <div className={`bg-${theme.bgDark} rounded-lg p-4 transition-all duration-300 hover:glow`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-${theme.text}`}>Recent Average Accuracy</span>
-                <span className={`text-lg font-bold text-${theme.accent}`}>
-                  {userStats.performance_trend.recent_avg_accuracy}%
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-${theme.textMuted} text-sm`}>Change:</span>
-                <span className={`text-sm font-semibold ${
-                  userStats.performance_trend.accuracy_improvement > 0 
-                    ? `text-${theme.accent}` 
-                    : userStats.performance_trend.accuracy_improvement < 0 
-                    ? `text-${theme.accent}` 
-                    : `text-${theme.textMuted}`
-                }`}>
-                  {userStats.performance_trend.accuracy_improvement > 0 ? '+' : ''}
-                  {userStats.performance_trend.accuracy_improvement}%
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Recent Games */}
       <div className={`bg-${theme.cardBg} rounded-xl p-6 border border-${theme.accent}/20 animate-slide-in`}>
         <div className="flex items-center justify-between mb-4">

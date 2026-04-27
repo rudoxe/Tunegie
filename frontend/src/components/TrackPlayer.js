@@ -39,7 +39,6 @@ const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
       if (!track) return;
       
       try {
-        console.log(`🎵 Fetching preview for "${track.title}" by ${track.artists?.[0]?.name}...`);
         
         const fetchedPreviewInfo = await itunesApiService.getTrackPreviewInfo(track);
         
@@ -47,12 +46,10 @@ const TrackPlayer = ({ track, difficulty = 'medium', onSnippetEnd }) => {
           setPreviewInfo(fetchedPreviewInfo);
           setAudioReady(true);
           setAudioError(null);
-          console.log('✅ Preview found:', fetchedPreviewInfo.actualTrack, 'from', fetchedPreviewInfo.source);
         } else {
           setAudioError('No preview available for this track');
           setAudioReady(false);
           setPreviewInfo(null);
-          console.warn('⚠️ No preview URL available');
         }
       } catch (error) {
         console.error('❌ Failed to fetch preview:', error);

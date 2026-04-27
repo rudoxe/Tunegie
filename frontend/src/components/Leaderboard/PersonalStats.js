@@ -17,120 +17,60 @@ const PersonalStats = ({ stats }) => {
     );
   }
 
-  const { statistics, global_rank, performance_trend, recent_games } = stats;
-
-  const getTrendIcon = (value) => {
-    if (value > 0) return '↗';
-    if (value < 0) return '↘';
-    return '→';
-  };
-
-  const getTrendColor = (value) => {
-    if (value > 0) return `text-${theme.accent}`;
-    if (value < 0) return 'text-red-400';
-    return `text-${theme.textMuted}`;
-  };
+  const { statistics, global_rank, recent_games } = stats;
 
   return (
     <div className="space-y-4 mb-6 sm:mb-8">
-      {/* Stats + Trend row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Personal Stats Overview */}
-        <div className={`lg:col-span-2 bg-gradient-to-r from-${theme.accent}/20 to-${theme.accent}/10 border border-${theme.accent}/30 rounded-lg p-4 sm:p-6 animate-slide-in transition-all duration-300`}>
-          <h3 className={`text-lg sm:text-xl font-bold text-${theme.accent} mb-4`}>Your Statistics</h3>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="text-center">
-              <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
-                {statistics.total_games_played}
-              </div>
-              <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Games Played</div>
+      {/* Personal Stats Overview - Full Width */}
+      <div className={`bg-gradient-to-r from-${theme.accent}/20 to-${theme.accent}/10 border border-${theme.accent}/30 rounded-lg p-4 sm:p-6 animate-slide-in transition-all duration-300`}>
+        <h3 className={`text-lg sm:text-xl font-bold text-${theme.accent} mb-4`}>Your Statistics</h3>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="text-center">
+            <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
+              {statistics.total_games_played}
             </div>
-            <div className="text-center">
-              <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
-                {statistics.best_score.toLocaleString()}
-              </div>
-              <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Best Score</div>
-            </div>
-            <div className="text-center">
-              <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
-                {statistics.best_accuracy}%
-              </div>
-              <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Best Accuracy</div>
-            </div>
-            <div className="text-center">
-              <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
-                #{global_rank}
-              </div>
-              <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Global Rank</div>
-            </div>
+            <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Games Played</div>
           </div>
-
-          <div className={`mt-4 pt-4 border-t border-${theme.accent}/30`}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
-              <div>
-                <span className={`text-${theme.textMuted}`}>Total Rounds: </span>
-                <span className={`text-${theme.text} font-medium`}>{statistics.total_rounds_played}</span>
-              </div>
-              <div>
-                <span className={`text-${theme.textMuted}`}>Correct Answers: </span>
-                <span className={`text-${theme.text} font-medium`}>{statistics.total_correct_answers}</span>
-              </div>
-              <div>
-                <span className={`text-${theme.textMuted}`}>Average Accuracy: </span>
-                <span className={`text-${theme.text} font-medium`}>{statistics.average_accuracy}%</span>
-              </div>
-              <div>
-                <span className={`text-${theme.textMuted}`}>Last Played: </span>
-                <span className={`text-${theme.text} font-medium`}>
-                  {statistics.last_played_at ? new Date(statistics.last_played_at).toLocaleDateString() : 'Never'}
-                </span>
-              </div>
+          <div className="text-center">
+            <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
+              {statistics.best_score.toLocaleString()}
             </div>
+            <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Best Score</div>
+          </div>
+          <div className="text-center">
+            <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
+              {statistics.best_accuracy}%
+            </div>
+            <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Best Accuracy</div>
+          </div>
+          <div className="text-center">
+            <div className={`text-xl sm:text-2xl font-bold text-${theme.accent}`}>
+              #{global_rank}
+            </div>
+            <div className={`text-xs sm:text-sm text-${theme.textMuted}`}>Global Rank</div>
           </div>
         </div>
 
-        {/* Performance Trend */}
-        <div className={`bg-${theme.cardBg} border border-${theme.accent}/30 rounded-lg p-4 sm:p-6 animate-slide-in transition-all duration-300`}>
-          <h3 className={`text-base sm:text-lg font-bold text-${theme.accent} mb-4`}>Recent Trend</h3>
-          
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between">
-              <span className={`text-${theme.textMuted} text-xs sm:text-sm`}>Score Improvement</span>
-              <div className="flex items-center gap-1.5">
-                <span className={getTrendColor(performance_trend.score_improvement_percentage)}>
-                  {getTrendIcon(performance_trend.score_improvement_percentage)}
-                </span>
-                <span className={`font-medium text-sm ${getTrendColor(performance_trend.score_improvement_percentage)}`}>
-                  {performance_trend.score_improvement_percentage > 0 ? '+' : ''}
-                  {performance_trend.score_improvement_percentage}%
-                </span>
-              </div>
+        <div className={`mt-4 pt-4 border-t border-${theme.accent}/30`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+            <div>
+              <span className={`text-${theme.textMuted}`}>Total Rounds: </span>
+              <span className={`text-${theme.text} font-medium`}>{statistics.total_rounds_played}</span>
             </div>
-            
-            <div className="flex items-center justify-between">
-              <span className={`text-${theme.textMuted} text-xs sm:text-sm`}>Accuracy Change</span>
-              <div className="flex items-center gap-1.5">
-                <span className={getTrendColor(performance_trend.accuracy_improvement)}>
-                  {getTrendIcon(performance_trend.accuracy_improvement)}
-                </span>
-                <span className={`font-medium text-sm ${getTrendColor(performance_trend.accuracy_improvement)}`}>
-                  {performance_trend.accuracy_improvement > 0 ? '+' : ''}
-                  {performance_trend.accuracy_improvement}%
-                </span>
-              </div>
+            <div>
+              <span className={`text-${theme.textMuted}`}>Correct Answers: </span>
+              <span className={`text-${theme.text} font-medium`}>{statistics.total_correct_answers}</span>
             </div>
-            
-            <div className={`pt-3 border-t border-${theme.accent}/30`}>
-              <div className={`text-xs text-${theme.textMuted} mb-1`}>Recent Average</div>
-              <div className="text-sm">
-                <span className={`text-${theme.textMuted}`}>Score: </span>
-                <span className={`font-medium text-${theme.text}`}>{performance_trend.recent_avg_score}</span>
-              </div>
-              <div className="text-sm">
-                <span className={`text-${theme.textMuted}`}>Accuracy: </span>
-                <span className={`font-medium text-${theme.text}`}>{performance_trend.recent_avg_accuracy}%</span>
-              </div>
+            <div>
+              <span className={`text-${theme.textMuted}`}>Average Accuracy: </span>
+              <span className={`text-${theme.text} font-medium`}>{statistics.average_accuracy}%</span>
+            </div>
+            <div>
+              <span className={`text-${theme.textMuted}`}>Last Played: </span>
+              <span className={`text-${theme.text} font-medium`}>
+                {statistics.last_played_at ? new Date(statistics.last_played_at).toLocaleDateString() : 'Never'}
+              </span>
             </div>
           </div>
         </div>

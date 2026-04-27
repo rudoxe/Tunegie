@@ -27,8 +27,6 @@ class iTunesApiService {
       url.searchParams.append(key, finalParams[key]);
     });
 
-    console.log(`🎵 iTunes API request via PHP proxy: ${url.toString()}`);
-
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -44,7 +42,6 @@ class iTunesApiService {
       
       // Extract the actual iTunes data
       const data = result.data;
-      console.log(`📊 iTunes API returned ${data.resultCount} results`);
       
       return data;
     } catch (error) {
@@ -55,8 +52,6 @@ class iTunesApiService {
 
   // Search for tracks
   async searchTracks(query, limit = 50) {
-    console.log(`🔍 Searching iTunes for: "${query}"`);
-    
     const data = await this.makeApiRequest({
       term: query,
       limit: limit
@@ -65,15 +60,11 @@ class iTunesApiService {
     // Filter results to only include tracks with preview URLs
     const tracksWithPreviews = data.results.filter(track => track.previewUrl);
     
-    console.log(`✅ Found ${tracksWithPreviews.length} tracks with previews out of ${data.results.length} total`);
-    
     return tracksWithPreviews.map(track => this.formatTrack(track));
   }
 
   // Get tracks by specific artist
   async getTracksByArtist(artistName, count = 10) {
-    console.log(`🎤 Getting tracks for artist: ${artistName}`);
-    
     try {
       // Step 1: Search for the artist to get their ID
       const artistSearch = await this.makeApiRequest({
@@ -85,7 +76,6 @@ class iTunesApiService {
       });
 
       if (!artistSearch.results?.length) {
-        console.warn(`❌ No artist found for: ${artistName}`);
         return [];
       }
 
@@ -96,11 +86,8 @@ class iTunesApiService {
       );
 
       if (!artist) {
-        console.warn(`❌ No matching artist found for: ${artistName}`);
         return [];
       }
-
-      console.log(`✅ Found artist: ${artist.artistName} (ID: ${artist.artistId})`);
 
       // Step 2: Get all tracks by artist ID using lookup
       const tracksResponse = await this.makeApiRequest({
@@ -111,7 +98,6 @@ class iTunesApiService {
       });
 
       if (!tracksResponse.results?.length) {
-        console.warn(`❌ No tracks found for artist ID: ${artist.artistId}`);
         return [];
       }
 
@@ -121,8 +107,6 @@ class iTunesApiService {
         item.previewUrl &&
         item.kind === 'song'
       );
-
-      console.log(`📦 Found ${tracks.length} tracks with previews`);
 
       if (tracks.length === 0) {
         // Fallback: Try direct search if lookup returns no results
@@ -158,11 +142,6 @@ class iTunesApiService {
       const selectedTracks = [...sortedTracks]
         .sort(() => Math.random() - 0.5)
         .slice(0, count);
-
-      console.log(`✅ Returning ${selectedTracks.length} tracks for ${artistName}:`);
-      selectedTracks.forEach(track => {
-        console.log(`  - "${track.trackName}" from "${track.collectionName}"`);
-      });
       
       return selectedTracks.map(track => this.formatTrack(track));
       
@@ -174,8 +153,6 @@ class iTunesApiService {
 
   // Get random popular tracks for general game mode
   async getRandomTracksForGame(count = 10) {
-    console.log(`🎲 Getting ${count} random popular tracks`);
-    
     try {
       // Search for popular terms to get current hits
       const popularSearchTerms = [
@@ -197,15 +174,12 @@ class iTunesApiService {
           const tracks = await this.searchTracks(term, 50);
           if (tracks && tracks.length > 0) {
             allTracks.push(...tracks);
-            console.log(`✅ Found ${tracks.length} tracks for term: ${term}`);
-          } else {
-            console.warn(`⚠️ No tracks found for term: ${term}`);
           }
           
           // Small delay to be respectful to the API
           await new Promise(resolve => setTimeout(resolve, 150));
         } catch (error) {
-          console.warn(`❌ Search failed for term: ${term}`, error);
+          // Continue to next term on error
         }
         
         // Only break early if we have well more than enough unique tracks
@@ -213,7 +187,6 @@ class iTunesApiService {
           index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
         );
         if (uniqueSoFar.length >= count * 3) {
-          console.log(`🎯 Early break - have enough tracks (${uniqueSoFar.length} unique)`);
           break;
         }
       }
@@ -223,17 +196,10 @@ class iTunesApiService {
         index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
       );
 
-      console.log(`🎵 Found ${uniqueTracks.length} unique tracks total`);
-
-      if (uniqueTracks.length < count) {
-        console.warn(`⚠️ Only found ${uniqueTracks.length} tracks, but need ${count}`);
-      }
-
       // Shuffle and return requested count
       const shuffled = uniqueTracks.sort(() => 0.5 - Math.random());
       const selectedTracks = shuffled.slice(0, count);
 
-      console.log(`✅ Selected ${selectedTracks.length} random tracks for game`);
       return selectedTracks;
 
     } catch (error) {
@@ -244,8 +210,6 @@ class iTunesApiService {
 
   // Get tracks by genre
   async getTracksByGenre(genre, count = 10) {
-    console.log(`🎼 Getting tracks for genre: ${genre}`);
-    
     // Map genre names to search terms that work well with iTunes
     const genreSearchTerms = {
       'pop': ['pop music', 'pop hits', 'top pop songs', 'popular pop'],
@@ -267,15 +231,12 @@ class iTunesApiService {
         const tracks = await this.searchTracks(term, 50);
         if (tracks && tracks.length > 0) {
           allTracks.push(...tracks);
-          console.log(`✅ Found ${tracks.length} tracks for genre term: ${term}`);
-        } else {
-          console.warn(`⚠️ No tracks found for genre term: ${term}`);
         }
         
         // Small delay between requests
         await new Promise(resolve => setTimeout(resolve, 150));
       } catch (error) {
-        console.warn(`❌ Genre search failed for term: ${term}`, error);
+        // Continue to next term on error
       }
       
       // Only break early if we have well more than enough unique tracks
@@ -283,7 +244,6 @@ class iTunesApiService {
         index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
       );
       if (uniqueSoFar.length >= count * 3) {
-        console.log(`🎯 Early break - have enough genre tracks (${uniqueSoFar.length} unique)`);
         break;
       }
     }
@@ -293,15 +253,8 @@ class iTunesApiService {
       index === self.findIndex(t => (t._raw?.trackId || t.id) === (track._raw?.trackId || track.id))
     );
 
-    console.log(`🎵 Found ${uniqueTracks.length} unique tracks for genre: ${genre}`);
-
     if (uniqueTracks.length === 0) {
-      console.warn(`❌ No tracks found for genre: ${genre}`);
       return [];
-    }
-
-    if (uniqueTracks.length < count) {
-      console.warn(`⚠️ Only found ${uniqueTracks.length} tracks for genre ${genre}, but need ${count}`);
     }
 
     // Shuffle and return requested count
@@ -358,8 +311,6 @@ class iTunesApiService {
   // Test API connection
   async testConnection() {
     try {
-      console.log('🧪 Testing iTunes API connection via PHP proxy...');
-      
       const response = await fetch(this.testUrl);
       
       if (!response.ok) {
@@ -369,15 +320,8 @@ class iTunesApiService {
       const result = await response.json();
       const isConnected = result.success && result.connected;
       
-      if (isConnected) {
-        console.log('✅ iTunes API connection successful via PHP proxy');
-      } else {
-        console.log('❌ iTunes API connection failed:', result.message);
-      }
-      
       return isConnected;
     } catch (error) {
-      console.error('❌ iTunes API connection test failed:', error);
       return false;
     }
   }
