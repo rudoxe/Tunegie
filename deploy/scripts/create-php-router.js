@@ -39,9 +39,6 @@ if (strpos($path, '/api/') === 0) {
         case '/register':
             $apiFile = __DIR__ . '/../api/register.php';
             break;
-        case '/forgot-password':
-            $apiFile = __DIR__ . '/../api/forgot-password.php';
-            break;
         case '/game/start':
             $apiFile = __DIR__ . '/../api/game/start.php';
             break;

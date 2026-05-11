@@ -13,7 +13,6 @@ import History from "./pages/History";
 import Profile from "./components/Profile/Profile";
 import AchievementView from "./components/Profile/AchievementView";
 import UserProfile from "./pages/UserProfile";
-import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -28,9 +27,8 @@ function App() {
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="history" element={<History />} />
               <Route path="profile" element={<Profile />} />
-              <Route path="achievements" element={<AchievementView />} />
-              <Route path="user/:userId" element={<UserProfile />} />
-              <Route path="reset-password" element={<ResetPassword />} />
+               <Route path="achievements" element={<AchievementView />} />
+               <Route path="user/:userId" element={<UserProfile />} />
             </Route>
           </Routes>
         </GameProvider>

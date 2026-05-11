@@ -159,8 +159,6 @@ Demo user credentials (for testing login):
 |--------|-------------------------------|------|----------------------|
 | POST   | `/api/auth/register.php`      | —    | Register             |
 | POST   | `/api/auth/login.php`         | —    | Login, returns JWT   |
-| POST   | `/api/auth/forgot-password.php` | —  | Request password reset |
-| POST   | `/api/auth/reset-password.php`  | —  | Reset password       |
 
 ### Game
 | Method | Path                          | Auth | Description          |
