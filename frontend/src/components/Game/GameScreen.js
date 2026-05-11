@@ -111,16 +111,16 @@ const GameScreen = ({
 
   const renderGuessInput = () => (
     <div className="bg-gray-900 bg-opacity-30 rounded-xl p-4 sm:p-8">
-      <label className="block text-green-300 font-semibold mb-3 sm:mb-4 text-center text-sm sm:text-base">
-        Enter your guess (song title or artist name):
-      </label>
+       <label className="block text-green-300 font-semibold mb-3 sm:mb-4 text-center text-sm sm:text-base">
+         Enter your guess (song title only):
+       </label>
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <input
           type="text"
           value={userGuess}
           onChange={(e) => setUserGuess(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && onSubmitGuess()}
-          placeholder="Song title or artist name..."
+           placeholder="Song title..."
           className="flex-1 px-4 py-3 bg-black bg-opacity-50 border border-gray-700 rounded-lg text-green-300 placeholder-green-200 placeholder-opacity-40 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm sm:text-base"
         />
         <button

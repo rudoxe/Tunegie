@@ -50,14 +50,12 @@ export const calculateOverlap = (guess, target) => {
   return totalGuessChars > 0 ? matchedChars / totalGuessChars : 0;
 };
 
-// Function to validate and score a guess
+// Function to validate and score a guess (title only - artist name not accepted)
 export const validateGuess = (userGuess, currentTrack) => {
   if (!userGuess.trim()) return { correct: false, matchType: 'empty' };
 
-  const correctAnswer = `${currentTrack.title} - ${currentTrack.artists[0].name}`;
   const guessLower = userGuess.toLowerCase().trim();
   const titleLower = currentTrack.title.toLowerCase();
-  const artistLower = currentTrack.artists[0].name.toLowerCase();
 
   // Declare variables at function level
   let correct = false;
@@ -72,38 +70,35 @@ export const validateGuess = (userGuess, currentTrack) => {
     // More strict matching logic - clean strings for better comparison
     const cleanGuess = guessLower.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
     const cleanTitle = titleLower.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-    const cleanArtist = artistLower.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-    
+
     // Check for substantial matches (not just single letters)
-    
-    // 1. Exact matches (highest priority)
-    if (cleanGuess === cleanTitle || cleanGuess === cleanArtist) {
+
+    // 1. Exact matches (highest priority) - title only
+    if (cleanGuess === cleanTitle) {
       correct = true;
       matchType = 'exact';
     }
-    // 2. Very close matches (80%+ similarity for longer strings)
+    // 2. Very close matches (80%+ similarity for longer strings) - title only
     else if (cleanGuess.length >= 5) {
       const titleSimilarity = calculateSimilarity(cleanGuess, cleanTitle);
-      const artistSimilarity = calculateSimilarity(cleanGuess, cleanArtist);
-      
-      if (titleSimilarity >= 0.8 || artistSimilarity >= 0.8) {
+
+      if (titleSimilarity >= 0.8) {
         correct = true;
         matchType = 'very close';
       }
-      // 3. Contains significant portion (50%+ of the guess must match)
+      // 3. Contains significant portion (50%+ of the guess must match) - title only
       else {
         const titleOverlap = calculateOverlap(cleanGuess, cleanTitle);
-        const artistOverlap = calculateOverlap(cleanGuess, cleanArtist);
-        
-        if (titleOverlap >= 0.5 || artistOverlap >= 0.5) {
+
+        if (titleOverlap >= 0.5) {
           correct = true;
           matchType = 'partial';
         }
       }
     }
-    // 4. For shorter guesses (3-4 chars), require exact substring match
+    // 4. For shorter guesses (3-4 chars), require exact substring match - title only
     else {
-      if (cleanTitle.includes(cleanGuess) || cleanArtist.includes(cleanGuess)) {
+      if (cleanTitle.includes(cleanGuess)) {
         // Additional check: the guess should be a meaningful part (not just common words)
         const commonWords = ['the', 'and', 'you', 'are', 'for', 'all', 'not', 'but', 'can', 'had', 'was'];
         if (!commonWords.includes(cleanGuess)) {
@@ -113,14 +108,14 @@ export const validateGuess = (userGuess, currentTrack) => {
       }
     }
   }
-  
+
   // Log result
   console.log(`🎯 Guess: "${userGuess}" | Title: "${currentTrack.title}" | Artist: "${currentTrack.artists[0].name}" | Match: ${correct ? `✅ ${matchType}` : `❌ ${matchType || 'no match'}`}`);
-  
+
   return {
     correct,
     matchType,
-    correctAnswer
+    correctAnswer: currentTrack.title
   };
 };
 

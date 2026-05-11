@@ -113,12 +113,12 @@ export const ReadyScreen = ({ gameData, onStart, difficulty, onDifficultyChange 
       
       <div className="bg-gray-900 bg-opacity-30 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
         <h3 className="text-lg sm:text-xl font-semibold text-green-400 mb-3 sm:mb-4">How to Play:</h3>
-        <div className="space-y-2 text-green-200 text-opacity-80 text-sm sm:text-base">
-          <p>Listen to {difficultyOptions.find(d => d.id === difficulty)?.duration}-second audio snippets</p>
-          <p>Guess the song title or artist name</p>
-          <p>No time limit - replay snippets anytime!</p>
-          <p>Score points for each correct guess</p>
-        </div>
+         <div className="space-y-2 text-green-200 text-opacity-80 text-sm sm:text-base">
+           <p>Listen to {difficultyOptions.find(d => d.id === difficulty)?.duration}-second audio snippets</p>
+           <p>Guess the song title</p>
+           <p>No time limit - replay snippets anytime!</p>
+           <p>Score points for each correct guess</p>
+         </div>
       </div>
 
       <button
